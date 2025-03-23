@@ -1,11 +1,11 @@
-package com.carpenstreet.product
+package com.carpenstreet
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
 @SpringBootApplication
-class ProductApplication
+class CarpenstreetApplication
 
 fun main(args: Array<String>) {
-	runApplication<ProductApplication>(*args)
+	runApplication<CarpenstreetApplication>(*args)
 }
