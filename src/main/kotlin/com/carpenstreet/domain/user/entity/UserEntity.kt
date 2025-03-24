@@ -1,7 +1,7 @@
 package com.carpenstreet.domain.user.entity
 
 import com.carpenstreet.domain.base.BaseEntity
-import com.carpenstreet.domain.user.enums.Country
+import com.carpenstreet.domain.common.enums.Country
 import com.carpenstreet.domain.user.enums.UserRole
 import jakarta.persistence.*
 

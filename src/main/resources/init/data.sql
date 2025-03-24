@@ -49,3 +49,24 @@ VALUES
     (7, 13500.50, 'APPROVED', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
     (1, 24000.00, 'APPROVED', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system');
 
+-- 번역 샘플: product_id = 1, 2, 3 (한국어, 영어, 일본어)
+-- Product 1
+INSERT INTO product_translations (product_id, language, title, description, created_at, created_by, updated_at, updated_by)
+VALUES
+    (1, 'KO', '한국어 상품 제목 1', '한국어 상품 설명 1', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
+    (1, 'EN', 'Product Title 1 (EN)', 'Product Description 1 (EN)', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
+    (1, 'JA', '商品タイトル1 (JA)', '商品説明1 (JA)', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system');
+
+-- Product 2
+INSERT INTO product_translations (product_id, language, title, description, created_at, created_by, updated_at, updated_by)
+VALUES
+    (2, 'KO', '한국어 상품 제목 2', '한국어 상품 설명 2', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
+    (2, 'EN', 'Product Title 2 (EN)', 'Product Description 2 (EN)', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
+    (2, 'JA', '商品タイトル2 (JA)', '商品説明2 (JA)', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system');
+
+-- Product 3
+INSERT INTO product_translations (product_id, language, title, description, created_at, created_by, updated_at, updated_by)
+VALUES
+    (3, 'KO', '한국어 상품 제목 3', '한국어 상품 설명 3', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
+    (3, 'EN', 'Product Title 3 (EN)', 'Product Description 3 (EN)', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
+    (3, 'JA', '商品タイトル3 (JA)', '商品説明3 (JA)', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system');
