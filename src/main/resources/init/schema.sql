@@ -37,3 +37,20 @@ CREATE TABLE IF NOT EXISTS product_translations
     updated_by  VARCHAR(100),
     CONSTRAINT fk_translation_product FOREIGN KEY (product_id) REFERENCES products (id)
 );
+
+CREATE TABLE IF NOT EXISTS product_review_histories
+(
+    id              BIGINT AUTO_INCREMENT PRIMARY KEY,
+    product_id      BIGINT      NOT NULL,
+    previous_status VARCHAR(20) NOT NULL,
+    new_status      VARCHAR(20) NOT NULL,
+    user_id      BIGINT      NOT NULL,
+    reason          TEXT,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by      VARCHAR(100),
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    updated_by      VARCHAR(100),
+    CONSTRAINT fk_review_history_product FOREIGN KEY (product_id) REFERENCES products (id),
+    CONSTRAINT fk_review_history_user FOREIGN KEY (user_id) REFERENCES users (id)
+);
+

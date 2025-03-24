@@ -70,3 +70,8 @@ VALUES
     (3, 'KO', '한국어 상품 제목 3', '한국어 상품 설명 3', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
     (3, 'EN', 'Product Title 3 (EN)', 'Product Description 3 (EN)', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
     (3, 'JA', '商品タイトル3 (JA)', '商品説明3 (JA)', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system');
+
+INSERT INTO product_review_histories (product_id, previous_status, new_status, user_id, reason, created_at, created_by, updated_at, updated_by)
+VALUES
+    (1, 'REQUESTED', 'REVIEWING', 2, NULL, CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
+    (1, 'REVIEWING', 'REJECTED', 2, '상품 설명 누락됨', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system');
