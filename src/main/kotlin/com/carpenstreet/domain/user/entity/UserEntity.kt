@@ -1,4 +1,22 @@
 package com.carpenstreet.domain.user.entity
 
-class UserEntity {
-}
+import com.carpenstreet.domain.base.BaseEntity
+import jakarta.persistence.*
+
+@Entity
+@Table(name = "users")
+class UserEntity(
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id: Long = 0L,
+    @Column(nullable = false)
+    val name: String,
+    @Column
+    val phone: String? = null,
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    val role: UserRole,
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    val country: Country,
+    ) : BaseEntity() {}

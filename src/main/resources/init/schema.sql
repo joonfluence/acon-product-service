@@ -1,0 +1,13 @@
+CREATE TABLE IF NOT EXISTS users
+(
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name       VARCHAR(100) NOT NULL,
+    phone      VARCHAR(20),
+    role       VARCHAR(20)  NOT NULL,
+    country VARCHAR(3) NOT NULL,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by VARCHAR(100),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    updated_by VARCHAR(100)
+);

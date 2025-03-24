@@ -1,4 +1,7 @@
 package com.carpenstreet.domain.user.entity
 
-class UserRole {
+enum class UserRole {
+    PARTNER,
+    ADMIN,
+    CUSTOMER
 }

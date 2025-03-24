@@ -1,4 +1,5 @@
 package com.carpenstreet.domain.user.entity
 
-class Country {
+enum class Country {
+    KR, US, JP
 }
