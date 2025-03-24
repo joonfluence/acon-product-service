@@ -18,3 +18,34 @@ VALUES
     ('田中作家', '+819012345678', 'JP', 'PARTNER', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
     ('鈴木管理者', '+819012345679', 'JP', 'ADMIN', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
     ('佐藤顧客', '+819012345680', 'JP', 'CUSTOMER', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system');
+
+-- DRAFT
+INSERT INTO products (partner_id, price, status, created_at, created_by, updated_at, updated_by)
+VALUES
+    (1, 12000.00, 'DRAFT', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
+    (4, 22000.00, 'DRAFT', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system');
+
+-- REQUESTED
+INSERT INTO products (partner_id, price, status, created_at, created_by, updated_at, updated_by)
+VALUES
+    (1, 18000.00, 'REQUESTED', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
+    (7, 25000.00, 'REQUESTED', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system');
+
+-- REVIEWING
+INSERT INTO products (partner_id, price, status, created_at, created_by, updated_at, updated_by)
+VALUES
+    (4, 15000.00, 'REVIEWING', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
+    (7, 19900.00, 'REVIEWING', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system');
+
+-- REJECTED
+INSERT INTO products (partner_id, price, status, created_at, created_by, updated_at, updated_by)
+VALUES
+    (1, 9000.00, 'REJECTED', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
+    (4, 16000.00, 'REJECTED', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system');
+
+-- APPROVED
+INSERT INTO products (partner_id, price, status, created_at, created_by, updated_at, updated_by)
+VALUES
+    (7, 13500.50, 'APPROVED', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
+    (1, 24000.00, 'APPROVED', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system');
+

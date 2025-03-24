@@ -4,10 +4,22 @@ CREATE TABLE IF NOT EXISTS users
     name       VARCHAR(100) NOT NULL,
     phone      VARCHAR(20),
     role       VARCHAR(20)  NOT NULL,
-    country VARCHAR(3) NOT NULL,
-
+    country    VARCHAR(3)   NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by VARCHAR(100),
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     updated_by VARCHAR(100)
+);
+
+CREATE TABLE IF NOT EXISTS products
+(
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+    partner_id BIGINT         NOT NULL,
+    price      DECIMAL(10, 2) NOT NULL,
+    status     VARCHAR(20)    NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by VARCHAR(100),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    updated_by VARCHAR(100),
+    CONSTRAINT fk_product_partner FOREIGN KEY (partner_id) REFERENCES users (id)
 );

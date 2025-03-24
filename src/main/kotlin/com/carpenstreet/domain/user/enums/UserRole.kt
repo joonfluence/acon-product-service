@@ -1,4 +1,4 @@
-package com.carpenstreet.domain.user.entity
+package com.carpenstreet.domain.user.enums
 
 enum class UserRole {
     PARTNER,
