@@ -1,7 +1,10 @@
 package com.carpenstreet.application.admin.controller
 
 import com.carpenstreet.application.admin.request.ProductStatusUpdateRequest
+import com.carpenstreet.application.admin.response.ProductDetailResponse
 import com.carpenstreet.application.admin.service.ProductAdminCommandService
+import com.carpenstreet.common.annotation.CurrentUser
+import com.carpenstreet.domain.user.entity.UserEntity
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -14,14 +17,13 @@ import org.springframework.web.bind.annotation.RestController
 class ProductAdminController(
     private val productAdminCommandService: ProductAdminCommandService,
 ) {
-    // TODO : 변경 필요 확인
     @PatchMapping("/{id}/status")
     fun updateStatus(
         @PathVariable id: Long,
         @RequestBody request: ProductStatusUpdateRequest,
-        @AuthenticationPrincipal user: UserEntity // 관리자
+        @CurrentUser user: UserEntity,
     ): ResponseEntity<ProductDetailResponse> {
-        val result = productAdminCommandService.updateProductStatus(id, request, user)
-        return ResponseEntity.ok(result)
+        val product = productAdminCommandService.updateProductStatus(id, request, user)
+        return ResponseEntity.ok(ProductDetailResponse.from(product))
     }
 }

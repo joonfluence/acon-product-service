@@ -1,11 +1,15 @@
 package com.carpenstreet.application.product.controller
 
 import com.carpenstreet.application.product.request.ProductCreateRequest
-import com.carpenstreet.application.product.response.ProductResponse
-import com.carpenstreet.application.admin.service.ProductCommandService
+import com.carpenstreet.application.product.request.ProductReviewRequest
 import com.carpenstreet.application.product.request.ProductUpdateRequest
+import com.carpenstreet.application.product.response.ProductResponse
 import com.carpenstreet.application.product.service.ProductCommandService
+import com.carpenstreet.common.annotation.CurrentUser
+import com.carpenstreet.domain.user.entity.UserEntity
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.PatchMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -19,18 +23,29 @@ class ProductController(
     @PostMapping
     fun createProduct(
         @RequestBody request: ProductCreateRequest,
-        @AuthenticationPrincipal user: UserEntity // or stubbed for now
+        @CurrentUser user: UserEntity,
     ): ResponseEntity<ProductResponse> {
         val result = productCommandService.createProduct(request, user)
         return ResponseEntity.ok(result)
     }
 
-    @PostMapping
+    @PatchMapping("/{id}")
     fun updateProduct(
+        @PathVariable id: Long,
         @RequestBody request: ProductUpdateRequest,
-        @AuthenticationPrincipal user: UserEntity // or stubbed for now
+        @CurrentUser user: UserEntity,
     ): ResponseEntity<ProductResponse> {
-        val result = productCommandService.createProduct(request, user)
-        return ResponseEntity.ok(result)
+        val product = productCommandService.updateProduct(id, request, user)
+        return ResponseEntity.ok(ProductResponse.from(product))
+    }
+
+    @PostMapping("/{id}/request-review")
+    fun requestReview(
+        @PathVariable id: Long,
+        @RequestBody reviewRequest: ProductReviewRequest,
+        @CurrentUser user: UserEntity
+    ): ResponseEntity<Void> {
+        productCommandService.requestReview(id, reviewRequest, user)
+        return ResponseEntity.ok().build()
     }
 }
