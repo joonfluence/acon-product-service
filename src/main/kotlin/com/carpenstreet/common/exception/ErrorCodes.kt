@@ -11,5 +11,6 @@ enum class ErrorCodes(
     BAD_REQUEST("GLOBAL_005", "잘못된 요청입니다."),
     CONSTRAINT_VIOLATION("GLOBAL_006", "제약 조건을 위반했습니다."),
     HAS_NO_TRANSITION_AUTHORITY("PRODUCT_01", "해당 권한으로는 상태 전이가 불가능합니다."),
-    PRODUCT_NOT_FOUND("PRODUCT_02", "상품이 존재하지 않습니다.")
+    PRODUCT_NOT_FOUND("PRODUCT_02", "상품이 존재하지 않습니다."),
+    HAS_NO_PRODUCT_EDIT_AUTHORITY("PRODUCT_03", "본인의 상품만 수정할 수 있습니다.")
 }

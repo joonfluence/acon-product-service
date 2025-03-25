@@ -1,3 +1,8 @@
 package com.carpenstreet.application.admin.request
 
-data class ProductStatusUpdateRequest()
+import com.carpenstreet.domain.product.enums.ProductStatus
+
+data class ProductStatusUpdateRequest(
+    val newStatus: ProductStatus,
+    val reason: String? = null
+)

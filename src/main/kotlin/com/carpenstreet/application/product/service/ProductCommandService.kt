@@ -54,7 +54,7 @@ class ProductCommandService(
     // TODO : DTO 생성 필요
     // TODO : update 시 정말 수정 가능한지 테스트 필요
     @Transactional
-    fun updateStatus(
+    fun updateProduct(
         productId: Long,
         newStatus: ProductStatus,
         user: UserEntity,
@@ -62,12 +62,11 @@ class ProductCommandService(
     ): ProductEntity {
         val product = productRepository.findByIdOrThrow(productId, BadRequestException(ErrorCodes.PRODUCT_NOT_FOUND))
 
-        validatePartnerAuthority(user, product)
         // 1. 상태 전이 유효성 검증
-        validateUserTransition(product, newStatus)
+        validateProductTransition(product, newStatus)
 
         // 2. 권한 검증
-        validateUserAuthority(product, newStatus, user)
+        validatePartnerAuthority(user, product, newStatus)
 
         // 3. 상태 변경 (DirtyChecking 활용)
         val previousStatus = product.status
@@ -87,17 +86,7 @@ class ProductCommandService(
         return product
     }
 
-    private fun validateUserAuthority(
-        product: ProductEntity?,
-        newStatus: ProductStatus,
-        user: UserEntity
-    ) {
-        if (!canUserTransition(product.status, newStatus, user.role)) {
-            throw NoAuthorizationException(ErrorCodes.HAS_NO_TRANSITION_AUTHORITY)
-        }
-    }
-
-    private fun validateUserTransition(
+    private fun validateProductTransition(
         product: ProductEntity,
         newStatus: ProductStatus
     ) {
@@ -108,24 +97,27 @@ class ProductCommandService(
 
     private fun validatePartnerAuthority(
         user: UserEntity,
-        product: ProductEntity?
+        product: ProductEntity,
+        newStatus: ProductStatus,
     ) {
-        if (user.role == UserRole.PARTNER && product.partner.id != user.id) {
+        if (user.role != UserRole.PARTNER) {
+            return
+        }
+
+        if (product.partner.id != user.id) {
             throw BadRequestException(ErrorCodes.HAS_NO_PRODUCT_EDIT_AUTHORITY)
+        }
+
+        if (!canPartnerTransition(product.status, newStatus)) {
+            throw NoAuthorizationException(ErrorCodes.HAS_NO_TRANSITION_AUTHORITY)
         }
     }
 
-    private fun canUserTransition(
+    private fun canPartnerTransition(
         current: ProductStatus,
-        target: ProductStatus,
-        role: UserRole
+        target: ProductStatus
     ): Boolean {
-        return when (role) {
-            UserRole.PARTNER -> current == ProductStatus.DRAFT && target == ProductStatus.REQUESTED ||
-                    current == ProductStatus.APPROVED && target == ProductStatus.REQUESTED ||
-                    current == ProductStatus.REJECTED && target == ProductStatus.REQUESTED
-            UserRole.ADMIN -> true // 모든 전이 허용
-            else -> false
-        }
+        return current in setOf(ProductStatus.DRAFT, ProductStatus.APPROVED, ProductStatus.REJECTED) &&
+                target == ProductStatus.REQUESTED
     }
 }

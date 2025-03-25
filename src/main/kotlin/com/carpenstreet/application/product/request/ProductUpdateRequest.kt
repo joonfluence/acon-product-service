@@ -1,3 +1,8 @@
 package com.carpenstreet.application.product.request
 
-data class ProductUpdateRequest()
+import java.math.BigDecimal
+
+data class ProductUpdateRequest(
+    val price: BigDecimal,
+    val translations: List<TranslationRequest>
+)

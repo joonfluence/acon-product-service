@@ -1,25 +1,27 @@
-package com.carpenstreet.application.product.controller
+package com.carpenstreet.application.admin.controller
 
-import com.carpenstreet.application.product.request.ProductCreateRequest
-import com.carpenstreet.application.product.response.ProductResponse
-import com.carpenstreet.application.product.service.ProductCommandService
+import com.carpenstreet.application.admin.request.ProductStatusUpdateRequest
+import com.carpenstreet.application.admin.service.ProductAdminCommandService
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PatchMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/products")
-class ProductController(
-    private val productCommandService: ProductCommandService,
+@RequestMapping("/admin/products")
+class ProductAdminController(
+    private val productAdminCommandService: ProductAdminCommandService,
 ) {
-    @PostMapping
-    fun createProduct(
-        @RequestBody request: ProductCreateRequest,
-        @AuthenticationPrincipal user: UserEntity // or stubbed for now
-    ): ResponseEntity<ProductResponse> {
-        val result = productCommandService.createProduct(request, user)
+    // TODO : 변경 필요 확인
+    @PatchMapping("/{id}/status")
+    fun updateStatus(
+        @PathVariable id: Long,
+        @RequestBody request: ProductStatusUpdateRequest,
+        @AuthenticationPrincipal user: UserEntity // 관리자
+    ): ResponseEntity<ProductDetailResponse> {
+        val result = productAdminCommandService.updateProductStatus(id, request, user)
         return ResponseEntity.ok(result)
     }
 }

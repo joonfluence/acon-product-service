@@ -1,3 +1,9 @@
 package com.carpenstreet.application.product.request
 
-data class TransitionRequest()
+import com.carpenstreet.domain.common.enums.Language
+
+data class TranslationRequest(
+    val language: Language,
+    val title: String,
+    val description: String
+)

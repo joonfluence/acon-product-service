@@ -1,5 +1,6 @@
 package com.carpenstreet.domain.product.entity
 
+import com.carpenstreet.application.product.response.ProductResponse
 import com.carpenstreet.domain.base.BaseEntity
 import com.carpenstreet.domain.product.enums.ProductStatus
 import com.carpenstreet.domain.user.entity.UserEntity
@@ -20,4 +21,19 @@ class ProductEntity(
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     var status: ProductStatus = ProductStatus.DRAFT,
-) : BaseEntity()
+) : BaseEntity() {
+    fun toResponse(translations: List<ProductTranslationEntity>): ProductResponse {
+        return ProductResponse(
+            id = id,
+            price = price,
+            status = status,
+            translations = translations.map {
+                ProductResponse.Translation(
+                    language = it.language,
+                    title = it.title,
+                    description = it.description
+                )
+            }
+        )
+    }
+}
