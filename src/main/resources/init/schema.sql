@@ -46,6 +46,8 @@ CREATE TABLE IF NOT EXISTS product_review_histories
     new_status      VARCHAR(20) NOT NULL,
     user_id      BIGINT      NOT NULL,
     reason          TEXT,
+    snapshot_title_ko       VARCHAR(255) NULL,
+    snapshot_description_ko TEXT         NULL,
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by      VARCHAR(100),
     updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

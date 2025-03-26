@@ -25,4 +25,7 @@ class ProductReviewHistoryEntity(
     val user: UserEntity,
     @Column(columnDefinition = "TEXT")
     val reason: String? = null,
-) : BaseEntity()
+    val snapshotTitleKo: String? = null,
+    @Column(columnDefinition = "TEXT")
+    val snapshotDescriptionKo: String? = null,
+    ) : BaseEntity()

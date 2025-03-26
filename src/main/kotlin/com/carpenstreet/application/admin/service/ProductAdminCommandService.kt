@@ -6,12 +6,14 @@ import com.carpenstreet.common.exception.ErrorCodes
 import com.carpenstreet.common.exception.NoAuthorizationException
 import com.carpenstreet.common.exception.UnchangeableStatusException
 import com.carpenstreet.common.extension.findByIdOrThrow
+import com.carpenstreet.domain.common.enums.Language
 import com.carpenstreet.domain.product.entity.ProductEntity
 import com.carpenstreet.domain.product.entity.ProductReviewHistoryEntity
 import com.carpenstreet.domain.product.enums.ProductStatus
 import com.carpenstreet.domain.product.enums.ProductStatusTransition
 import com.carpenstreet.domain.product.repository.ProductRepository
 import com.carpenstreet.domain.product.repository.ProductReviewHistoryRepository
+import com.carpenstreet.domain.product.repository.ProductTranslationRepository
 import com.carpenstreet.domain.user.entity.UserEntity
 import com.carpenstreet.domain.user.enums.UserRole
 import org.springframework.stereotype.Service
@@ -20,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class ProductAdminCommandService(
     private val productRepository: ProductRepository,
+    private val productTranslationRepository: ProductTranslationRepository,
     private val productReviewHistoryRepository: ProductReviewHistoryRepository,
 ) {
     // TODO : DTO 생성 필요
@@ -32,6 +35,9 @@ class ProductAdminCommandService(
         user: UserEntity,
     ): ProductEntity {
         val product = productRepository.findByIdOrThrow(productId, BadRequestException(ErrorCodes.PRODUCT_NOT_FOUND))
+        val productDetail =
+            productTranslationRepository.findByProductIdAndLanguage(product.id, Language.KO);
+
         val newStatus = request.newStatus
         val reason = request.reason
 
@@ -51,7 +57,9 @@ class ProductAdminCommandService(
             previousStatus = previousStatus,
             newStatus = newStatus,
             user = user,
-            reason = reason
+            reason = reason,
+            snapshotTitleKo = productDetail.title,
+            snapshotDescriptionKo = productDetail.description
         )
 
         productReviewHistoryRepository.save(history)
