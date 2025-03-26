@@ -22,3 +22,9 @@ spring:
       mode: always
       schema-locations: classpath:init/schema.sql
       data-locations: classpath:init/data.sql
+  data:
+    web:
+      pageable:
+        default-page-size: 10
+        max-page-size: 100
+        one-indexed-parameters: true

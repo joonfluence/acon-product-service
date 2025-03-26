@@ -19,6 +19,7 @@ class ProductRepositoryCustomImpl : ProductRepositoryCustom,
     val user = QUserEntity.userEntity
     val translation = QProductTranslationEntity.productTranslationEntity
 
+    // TODO : Projection 활용하여 화면에 필요한 정보 조합하기
     override fun findAllWithTranslations(
         request: ProductGetRequest,
         pageable: Pageable,
@@ -46,7 +47,7 @@ class ProductRepositoryCustomImpl : ProductRepositoryCustom,
         val content = query.fetch()
 
         val count = from(product)
-            .select(product)
+            .select(product.id)
             .innerJoin(product.partner, user)
             .leftJoin(translation).on(product.id.eq(translation.product.id))
             .where(
