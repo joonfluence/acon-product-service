@@ -4,7 +4,8 @@ import com.carpenstreet.application.product.request.ProductCreateRequest
 import com.carpenstreet.application.product.request.ProductReviewRequest
 import com.carpenstreet.application.product.request.ProductUpdateRequest
 import com.carpenstreet.application.product.response.ProductResponse
-import com.carpenstreet.client.NotificationClient
+import com.carpenstreet.client.notification.NotificationClient
+import com.carpenstreet.client.notification.dto.SmsRequest
 import com.carpenstreet.common.exception.BadRequestException
 import com.carpenstreet.common.exception.ErrorCodes
 import com.carpenstreet.common.exception.NoAuthorizationException
@@ -70,10 +71,7 @@ class ProductCommandService(
             throw IllegalAccessException("Unauthorized to update this product")
         }
 
-        product.title = request.title
-        product.description = request.description
-        product.price = request.price
-
+        // TODO : 번역 본 수정 반영 필요
         productRepository.save(product)
         return product
     }
@@ -107,8 +105,10 @@ class ProductCommandService(
 
         // 매니저에게 메시지 전송 (SMS 전송 API 사용)
         notificationClient.sendSms(
-            product.partner.phone,
-            "매니저에게 메시지 전송: ${request.message}",
+            SmsRequest(
+                product.partner.phone,
+                "매니저에게 메시지 전송: ${request.message}",
+            )
         )
 
         return product.toResponse()
