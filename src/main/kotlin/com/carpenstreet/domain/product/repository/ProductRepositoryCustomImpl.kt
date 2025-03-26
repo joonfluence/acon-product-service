@@ -1,6 +1,8 @@
 package com.carpenstreet.domain.product.repository
 
 import com.carpenstreet.application.admin.request.AdminProductGetRequest
+import com.carpenstreet.application.product.dto.ProductUserProjection
+import com.carpenstreet.application.product.dto.QProductUserProjection
 import com.carpenstreet.application.product.request.ProductGetRequest
 import com.carpenstreet.domain.common.enums.Language
 import com.carpenstreet.domain.product.entity.ProductEntity
@@ -23,20 +25,27 @@ class ProductRepositoryCustomImpl : ProductRepositoryCustom,
     override fun findAll(
         request: ProductGetRequest,
         pageable: Pageable,
-    ): Page<ProductEntity> {
+    ): Page<ProductUserProjection> {
         val query = from(product)
-            .select(product)
+            .select(
+                QProductUserProjection(
+                    product.id,
+                    product.price,
+                    product.status,
+                    translation.title,
+                    translation.description,
+                    user
+                )
+            )
             .innerJoin(product.partner, user)
             .leftJoin(translation).on(product.id.eq(translation.product.id))
             .where(
                 product.status.eq(
                     ProductStatus.APPROVED
                 ),
+                translation.language.eq(request.language),
                 request.partnerName?.let { user.name.contains(it) },
-                request.title?.let {
-                    translation.language.eq(Language.KO)
-                        .and(translation.title.contains(it))
-                }
+                request.title?.let { translation.title.contains(it) },
             )
             .distinct()
 

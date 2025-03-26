@@ -2,7 +2,7 @@ package com.carpenstreet.application.admin.controller
 
 import com.carpenstreet.application.admin.request.AdminProductGetRequest
 import com.carpenstreet.application.admin.request.ProductStatusUpdateRequest
-import com.carpenstreet.application.admin.response.ProductDetailResponse
+import com.carpenstreet.application.admin.response.ProductUserResponse
 import com.carpenstreet.application.admin.service.ProductAdminCommandService
 import com.carpenstreet.application.admin.service.ProductAdminQueryService
 import com.carpenstreet.application.product.response.ProductResponse
@@ -44,9 +44,9 @@ class ProductAdminController(
     @GetMapping("/{id}")
     fun getProductDetail(
         @PathVariable id: Long
-    ): ResponseEntity<ProductDetailResponse> {
+    ): ResponseEntity<ProductUserResponse> {
         val product = productAdminQueryService.getProductDetail(id)
-        return ResponseEntity.ok(ProductDetailResponse.from(product))
+        return ResponseEntity.ok(ProductUserResponse.from(product))
     }
 
     @PatchMapping("/{id}/status")
@@ -54,8 +54,8 @@ class ProductAdminController(
         @PathVariable id: Long,
         @RequestBody request: ProductStatusUpdateRequest,
         @CurrentUser user: UserEntity,
-    ): ResponseEntity<ProductDetailResponse> {
+    ): ResponseEntity<ProductUserResponse> {
         val product = productAdminCommandService.updateProductStatus(id, request, user)
-        return ResponseEntity.ok(ProductDetailResponse.from(product))
+        return ResponseEntity.ok(ProductUserResponse.from(product))
     }
 }

@@ -5,6 +5,7 @@ import com.carpenstreet.application.product.request.ProductGetRequest
 import com.carpenstreet.application.product.request.ProductReviewRequest
 import com.carpenstreet.application.product.request.ProductUpdateRequest
 import com.carpenstreet.application.product.response.ProductResponse
+import com.carpenstreet.application.product.response.ProductUserResponse
 import com.carpenstreet.application.product.service.ProductCommandService
 import com.carpenstreet.application.product.service.ProductQueryService
 import com.carpenstreet.common.annotation.CurrentUser
@@ -33,12 +34,12 @@ class ProductController(
         request: ProductGetRequest,
         @PageableDefault(size = 10, sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable,
     ): ResponseEntity<PageImpl<ProductResponse>> {
-        val products = productQueryService.getProducts(request, pageable)
+        val productsWithPartner = productQueryService.getProducts(request, pageable)
         return ResponseEntity.ok(
             PageImpl(
-                products.content.map { product -> ProductResponse.from(product) },
-                products.pageable,
-                products.totalElements,
+                productsWithPartner.content.map { product -> ProductResponse.of(product) },
+                productsWithPartner.pageable,
+                productsWithPartner.totalElements,
             )
         )
     }
@@ -50,6 +51,14 @@ class ProductController(
     ): ResponseEntity<ProductResponse> {
         val result = productCommandService.createProduct(request, user)
         return ResponseEntity.ok(result)
+    }
+
+    @GetMapping("/{id}")
+    fun getProductDetail(
+        @PathVariable id: Long
+    ): ResponseEntity<ProductUserResponse> {
+        val product = productQueryService.getProductDetail(id)
+        return ResponseEntity.ok(ProductUserResponse.from(product))
     }
 
     @PatchMapping("/{id}")

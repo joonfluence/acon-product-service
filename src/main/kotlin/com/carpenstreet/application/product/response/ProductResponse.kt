@@ -1,5 +1,6 @@
 package com.carpenstreet.application.product.response
 
+import com.carpenstreet.application.product.dto.ProductUserProjection
 import com.carpenstreet.domain.product.entity.ProductEntity
 import com.carpenstreet.domain.product.enums.ProductStatus
 import java.math.BigDecimal
@@ -8,13 +9,31 @@ data class ProductResponse(
     val id: Long,
     val price: BigDecimal,
     val status: ProductStatus,
+    val title: String? = null,
+    val description: String? = null,
+    val partner: UserResponse? = null,
 ) {
     companion object {
-        fun from(entity: ProductEntity) : ProductResponse {
+        fun from(
+            product: ProductEntity,
+        ) : ProductResponse {
             return ProductResponse(
-                id = entity.id,
-                price = entity.price,
-                status = entity.status,
+                id = product.id,
+                price = product.price,
+                status = product.status,
+            )
+        }
+
+        fun of(
+            product: ProductUserProjection,
+        ) : ProductResponse {
+            return ProductResponse(
+                id = product.id,
+                price = product.price,
+                status = product.status,
+                title = product.title,
+                description = product.description,
+                partner = UserResponse.from(product.partner)
             )
         }
     }
