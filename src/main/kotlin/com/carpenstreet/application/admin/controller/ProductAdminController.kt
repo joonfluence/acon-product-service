@@ -1,6 +1,7 @@
 package com.carpenstreet.application.admin.controller
 
 import com.carpenstreet.application.admin.request.AdminProductGetRequest
+import com.carpenstreet.application.admin.request.AdminProductRejectRequest
 import com.carpenstreet.application.admin.request.AdminProductUpdateRequest
 import com.carpenstreet.application.admin.request.ProductStatusUpdateRequest
 import com.carpenstreet.application.admin.response.ProductUserResponse
@@ -59,13 +60,26 @@ class ProductAdminController(
         return ResponseEntity.ok(ProductResponse.from(product))
     }
 
-    @PatchMapping("/{id}/status")
-    fun updateStatus(
+    @PatchMapping("/{id}/reviewing")
+    fun startReview(@PathVariable id: Long): ResponseEntity<Void> {
+        productAdminCommandService.startReview(id)
+        return ResponseEntity.ok().build()
+    }
+
+    @PatchMapping("/{id}/reject")
+    fun rejectProduct(
         @PathVariable id: Long,
-        @RequestBody request: ProductStatusUpdateRequest,
-        @CurrentUser user: UserEntity,
-    ): ResponseEntity<ProductUserResponse> {
-        val product = productAdminCommandService.updateProductStatus(id, request, user)
-        return ResponseEntity.ok(ProductUserResponse.from(product))
+        @RequestBody request: AdminProductRejectRequest,
+    ): ResponseEntity<Void> {
+        productAdminCommandService.rejectProduct(id, request.reason)
+        return ResponseEntity.ok().build()
+    }
+
+    @PatchMapping("/{id}/approve")
+    fun approveProduct(
+        @PathVariable id: Long
+    ): ResponseEntity<Void> {
+        productAdminCommandService.approveProduct(id)
+        return ResponseEntity.ok().build()
     }
 }

@@ -73,10 +73,9 @@ class ProductController(
     @PostMapping("/{id}/request-review")
     fun requestReview(
         @PathVariable id: Long,
-        @RequestBody reviewRequest: ProductReviewRequest,
-        @CurrentUser user: UserEntity
+        @RequestBody reviewRequest: ProductReviewRequest
     ): ResponseEntity<Void> {
-        productCommandService.requestReview(id, reviewRequest, user)
+        productCommandService.requestReview(id, reviewRequest)
         return ResponseEntity.ok().build()
     }
 }

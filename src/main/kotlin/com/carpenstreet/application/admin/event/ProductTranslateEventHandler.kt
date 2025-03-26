@@ -2,11 +2,15 @@ package com.carpenstreet.application.admin.event
 
 import com.carpenstreet.application.product.request.TranslationRequest
 import com.carpenstreet.client.TranslationClient
+import com.carpenstreet.common.exception.BadRequestException
+import com.carpenstreet.common.exception.ErrorCodes
+import com.carpenstreet.common.extension.findByIdOrThrow
 import com.carpenstreet.domain.common.enums.Language
+import com.carpenstreet.domain.product.entity.ProductTranslationEntity
+import com.carpenstreet.domain.product.repository.ProductRepository
 import com.carpenstreet.domain.product.repository.ProductTranslationRepository
 import com.carpenstreet.domain.translation.entity.TranslationFailureEntity
 import com.carpenstreet.domain.translation.repository.TranslationFailureRepository
-import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
@@ -14,33 +18,39 @@ import org.springframework.stereotype.Component
 @Component
 class ProductTranslationEventHandler(
     private val translationClient: TranslationClient,
+    private val productRepository: ProductRepository,
     private val productTranslationRepository: ProductTranslationRepository,
     private val translationFailureRepository: TranslationFailureRepository,
 ) {
-    private val log = LoggerFactory.getLogger(ProductTranslationEventHandler::class.java)
-
     @Async
     @EventListener
     fun handle(event: ProductTranslationEvent) {
-        val translations = productTranslationRepository.findByProductId(event.productId).associateBy { it.language }
+        val existing = productTranslationRepository.findByProductId(event.productId).associateBy { it.language }
+        val product =
+            productRepository.findByIdOrThrow(event.productId, BadRequestException(ErrorCodes.PRODUCT_NOT_FOUND))
 
-        Language.entries
-            .filter { it != Language.KO }
-            .forEach { lang ->
-                try {
-                    val translated = translateToLanguages(event.koTitle, event.koDescription)
+        try {
+            val translated = translateToLanguages(event.koTitle, event.koDescription)
 
-                    Language.entries
-                        .filter { it != Language.KO }
-                        .forEach { lang ->
-                            translations[lang]?.update(
-                                title = translated[lang]?.first ?: translations[lang]!!.title,
-                                description = translated[lang]?.second ?: translations[lang]!!.description
-                            )
-                        }
+            val toSave = Language.entries
+                .filter { it != Language.KO }
+                .map { lang ->
+                    val (title, desc) = translated[lang] ?: ("" to "")
+                    val entity = existing[lang] ?: ProductTranslationEntity(
+                        product = product,
+                        language = lang,
+                        title = title,
+                        description = desc
+                    )
+                    entity.update(title, desc)
+                }
 
-                    productTranslationRepository.saveAll(translations.values)
-                } catch (ex: Exception) {
+            productTranslationRepository.saveAll(toSave)
+
+        } catch (ex: Exception) {
+            Language.entries
+                .filter { it != Language.KO }
+                .forEach { lang ->
                     translationFailureRepository.save(
                         TranslationFailureEntity(
                             productId = event.productId,
@@ -51,7 +61,7 @@ class ProductTranslationEventHandler(
                         )
                     )
                 }
-            }
+        }
     }
 
     private fun translateToLanguages(koTitle: String, koDescription: String): Map<Language, Pair<String, String>> {

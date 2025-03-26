@@ -1,24 +1,23 @@
 package com.carpenstreet.application.admin.service
 
 import com.carpenstreet.application.admin.event.ProductTranslationEvent
+import com.carpenstreet.application.admin.event.SmsNotificationEvent
 import com.carpenstreet.application.admin.request.AdminProductUpdateRequest
-import com.carpenstreet.application.admin.request.ProductStatusUpdateRequest
 import com.carpenstreet.application.product.dto.ProductDetailUserDto
+import com.carpenstreet.common.context.UserContext
 import com.carpenstreet.common.exception.BadRequestException
 import com.carpenstreet.common.exception.ErrorCodes
-import com.carpenstreet.common.exception.NoAuthorizationException
 import com.carpenstreet.common.exception.UnchangeableStatusException
 import com.carpenstreet.common.extension.findByIdOrThrow
 import com.carpenstreet.domain.common.enums.Language
 import com.carpenstreet.domain.product.entity.ProductEntity
 import com.carpenstreet.domain.product.entity.ProductReviewHistoryEntity
+import com.carpenstreet.domain.product.entity.ProductTranslationEntity
 import com.carpenstreet.domain.product.enums.ProductStatus
 import com.carpenstreet.domain.product.enums.ProductStatusTransition
 import com.carpenstreet.domain.product.repository.ProductRepository
 import com.carpenstreet.domain.product.repository.ProductReviewHistoryRepository
 import com.carpenstreet.domain.product.repository.ProductTranslationRepository
-import com.carpenstreet.domain.user.entity.UserEntity
-import com.carpenstreet.domain.user.enums.UserRole
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -28,7 +27,7 @@ class ProductAdminCommandService(
     private val productRepository: ProductRepository,
     private val productTranslationRepository: ProductTranslationRepository,
     private val productReviewHistoryRepository: ProductReviewHistoryRepository,
-    private val applicationEventPublisher: ApplicationEventPublisher,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
 
     @Transactional
@@ -52,9 +51,10 @@ class ProductAdminCommandService(
 
         productRepository.save(product)
         productTranslationRepository.saveAll(translations.values)
+        // TODO : 수정 이력 남기기
 
         if (Language.KO.equals(request.language)) {
-            applicationEventPublisher.publishEvent(
+           eventPublisher.publishEvent(
                 ProductTranslationEvent(
                     product.id,
                     request.title,
@@ -66,55 +66,118 @@ class ProductAdminCommandService(
         return ProductDetailUserDto.of(product, targetTranslation, partner)
     }
 
-    // TODO : DTO 생성 필요
-    // TODO : update 시 정말 수정 가능한지 테스트 필요
-    // TODO : 외부 API 통신 기능이 추가로 필요
     @Transactional
-    fun updateProductStatus(
-        productId: Long,
-        request: ProductStatusUpdateRequest,
-        user: UserEntity,
-    ): ProductEntity {
+    fun startReview(productId: Long) {
         val product = productRepository.findByIdOrThrow(productId, BadRequestException(ErrorCodes.PRODUCT_NOT_FOUND))
-        val productDetail =
+        val translation =
             productTranslationRepository.findByProductIdAndLanguage(product.id, Language.KO)
 
-        val newStatus = request.newStatus
-        val reason = request.reason
+        require(product.status == ProductStatus.REQUESTED) {
+            "상품은 검토 요청 상태여야 합니다."
+        }
 
-        // 1. 상태 전이 유효성 검증
-        validateProductTransition(product, newStatus)
-
-        // 2. 권한 검증
-        validateUserAuthority(product, newStatus, user)
-
-        // 3. 상태 변경 (DirtyChecking 활용)
         val previousStatus = product.status
-        product.status = newStatus
+        val newStatus = ProductStatus.REVIEWING
 
-        // 4. 변경 이력 저장
+        product.status = newStatus
+        productRepository.save(product)
+
         val history = ProductReviewHistoryEntity(
             product = product,
             previousStatus = previousStatus,
             newStatus = newStatus,
-            user = user,
-            reason = reason,
-            snapshotTitleKo = productDetail.title,
-            snapshotDescriptionKo = productDetail.description
+            user = UserContext.get(),
         )
 
         productReviewHistoryRepository.save(history)
-        return product
+        eventPublisher.publishEvent(
+            ProductTranslationEvent(
+                productId = product.id,
+                koTitle = translation.title,
+                koDescription = translation.description
+            )
+        )
+
+        eventPublisher.publishEvent(
+            SmsNotificationEvent(
+                phone = product.partner.phone,
+                message = "[ACON] 상품 검토가 시작되었습니다."
+            )
+        )
     }
 
-    private fun validateUserAuthority(
-        product: ProductEntity,
-        newStatus: ProductStatus,
-        user: UserEntity,
-    ) {
-        if (!canUserTransition(product.status, newStatus, user.role)) {
-            throw NoAuthorizationException(ErrorCodes.HAS_NO_TRANSITION_AUTHORITY)
+    @Transactional
+    fun rejectProduct(productId: Long, reason: String?) {
+        val product = productRepository.findByIdOrThrow(productId, BadRequestException(ErrorCodes.PRODUCT_NOT_FOUND))
+        require(product.status == ProductStatus.REVIEWING) {
+            "상품은 검토 중 상태여야 합니다."
         }
+
+        val newStatus = ProductStatus.REJECTED
+        validateProductTransition(product, newStatus)
+        val previousStatus = product.status
+
+        product.status = newStatus
+        productRepository.save(product)
+
+        // 기존 번역 삭제
+        productTranslationRepository.deleteByProductIdAndLanguageIn(
+            productId,
+            listOf(Language.EN, Language.JA)
+        )
+
+        val history = ProductReviewHistoryEntity(
+            product = product,
+            previousStatus = previousStatus,
+            newStatus = newStatus,
+            user = UserContext.get(),
+            reason = reason,
+        )
+
+        productReviewHistoryRepository.save(history)
+
+        // 문자 알림 이벤트
+        eventPublisher.publishEvent(
+            SmsNotificationEvent(
+                phone = product.partner.phone,
+                message = buildString {
+                    append("[ACON] 상품이 검토 거절되었습니다.")
+                    reason?.let { append(" 사유: $it") }
+                }
+            )
+        )
+    }
+
+    @Transactional
+    fun approveProduct(productId: Long) {
+        val product = productRepository.findByIdOrThrow(productId, BadRequestException(ErrorCodes.PRODUCT_NOT_FOUND))
+        require(product.status == ProductStatus.REVIEWING) {
+            "상품은 검토 중 상태여야 합니다."
+        }
+
+        val previousStatus = product.status
+        val newStatus = ProductStatus.APPROVED
+        validateProductTransition(product, newStatus)
+
+        product.status = newStatus
+        productRepository.save(product)
+
+        val history = ProductReviewHistoryEntity(
+            product = product,
+            previousStatus = previousStatus,
+            newStatus = newStatus,
+            user = UserContext.get(),
+        )
+
+        productReviewHistoryRepository.save(history)
+
+        // 문자 알림 이벤트
+        eventPublisher.publishEvent(
+            SmsNotificationEvent(
+                phone = product.partner.phone,
+                message = "[ACON] 상품 검토가 완료되어 판매가 시작됩니다."
+            )
+        )
     }
 
     private fun validateProductTransition(
@@ -123,21 +186,6 @@ class ProductAdminCommandService(
     ) {
         if (!ProductStatusTransition.isValidTransition(product.status, newStatus)) {
             throw UnchangeableStatusException("유효하지 않은 상태 전이입니다: ${product.status} → $newStatus")
-        }
-    }
-
-    private fun canUserTransition(
-        current: ProductStatus,
-        target: ProductStatus,
-        role: UserRole
-    ): Boolean {
-        return when (role) {
-            UserRole.PARTNER -> current == ProductStatus.DRAFT && target == ProductStatus.REQUESTED ||
-                    current == ProductStatus.APPROVED && target == ProductStatus.REQUESTED ||
-                    current == ProductStatus.REJECTED && target == ProductStatus.REQUESTED
-
-            UserRole.ADMIN -> true // 모든 전이 허용
-            else -> false
         }
     }
 }

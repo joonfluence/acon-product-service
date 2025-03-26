@@ -31,8 +31,9 @@ class ProductTranslationEntity(
     @Column(columnDefinition = "TEXT", nullable = false)
     var description: String,
 ) : BaseEntity() {
-    fun update(title: String, description: String){
+    fun update(title: String, description: String): ProductTranslationEntity{
         this.title = title
         this.description = description
+        return this
     }
 }

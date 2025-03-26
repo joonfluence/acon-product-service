@@ -61,8 +61,23 @@ CREATE TABLE IF NOT EXISTS translation_failures
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     product_id      BIGINT NOT NULL,
     target_language VARCHAR(10),
-    title           TEXT,
-    description     TEXT,
-    reason          TEXT,
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    title           VARCHAR(100),
+    description     VARCHAR(255),
+    reason          VARCHAR(255),
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by      VARCHAR(100),
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    updated_by      VARCHAR(100)
+);
+
+CREATE TABLE IF NOT EXISTS notification_failures
+(
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+    phone      VARCHAR(20),
+    message    VARCHAR(1024),
+    reason     VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by VARCHAR(100),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    updated_by VARCHAR(100)
 );

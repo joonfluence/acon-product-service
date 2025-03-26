@@ -4,8 +4,6 @@ import com.carpenstreet.application.product.dto.ProductDetailUserDto
 import com.carpenstreet.application.product.request.ProductCreateRequest
 import com.carpenstreet.application.product.request.ProductReviewRequest
 import com.carpenstreet.application.product.request.ProductUpdateRequest
-import com.carpenstreet.client.notification.NotificationClient
-import com.carpenstreet.client.notification.dto.SmsRequest
 import com.carpenstreet.common.context.UserContext
 import com.carpenstreet.common.exception.BadRequestException
 import com.carpenstreet.common.exception.ErrorCodes
@@ -31,7 +29,6 @@ class ProductCommandService(
     private val productRepository: ProductRepository,
     private val productTranslationRepository: ProductTranslationRepository,
     private val productReviewHistoryRepository: ProductReviewHistoryRepository,
-    private val notificationClient: NotificationClient,
 ) {
     // TODO : Request to DTO 변경 필요 (Response도 마찬가지)
     @Transactional
@@ -89,34 +86,23 @@ class ProductCommandService(
     fun requestReview(
         id: Long,
         request: ProductReviewRequest,
-        user: UserEntity
     ): ProductEntity {
         val product = productRepository.findByIdOrThrow(id, BadRequestException(ErrorCodes.PRODUCT_NOT_FOUND))
+        val user = UserContext.get()
 
-        // 1. 상태 전이 유효성 검증
         validateProductTransition(product)
-
-        // 2. 권한 검증
         validatePartnerAuthority(user, product)
 
-        // 3. 상태 변경 (DirtyChecking 활용)
         val previousStatus = product.status
-        product.status = ProductStatus.REQUESTED
+        val newStatus = ProductStatus.REQUESTED
+        product.status = newStatus
 
-        // 4. 변경 이력 저장
-        val history = ProductReviewHistoryEntity(
-            product = product,
-            previousStatus = previousStatus,
-            newStatus = ProductStatus.REQUESTED,
-            user = user,
-        )
-        productReviewHistoryRepository.save(history)
-
-        // 매니저에게 메시지 전송 (SMS 전송 API 사용)
-        notificationClient.sendSms(
-            SmsRequest(
-                product.partner.phone,
-                "매니저에게 메시지 전송: ${request.message}",
+        productReviewHistoryRepository.save(
+            ProductReviewHistoryEntity(
+                product = product,
+                previousStatus = previousStatus,
+                newStatus = newStatus,
+                user = user,
             )
         )
 
@@ -143,16 +129,14 @@ class ProductCommandService(
             throw BadRequestException(ErrorCodes.HAS_NO_PRODUCT_EDIT_AUTHORITY)
         }
 
-        if (!canPartnerTransition(product.status, ProductStatus.REQUESTED)) {
+        if (!canPartnerTransition(product.status)) {
             throw NoAuthorizationException(ErrorCodes.HAS_NO_TRANSITION_AUTHORITY)
         }
     }
 
     private fun canPartnerTransition(
         current: ProductStatus,
-        target: ProductStatus
     ): Boolean {
-        return current in setOf(ProductStatus.DRAFT, ProductStatus.APPROVED, ProductStatus.REJECTED) &&
-                target == ProductStatus.REQUESTED
+        return current in setOf(ProductStatus.DRAFT, ProductStatus.APPROVED, ProductStatus.REJECTED)
     }
 }
