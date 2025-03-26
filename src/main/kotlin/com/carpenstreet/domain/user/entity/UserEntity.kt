@@ -14,7 +14,7 @@ class UserEntity(
     @Column(nullable = false)
     val name: String,
     @Column
-    val phone: String? = null,
+    val phone: String,
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     val role: UserRole,

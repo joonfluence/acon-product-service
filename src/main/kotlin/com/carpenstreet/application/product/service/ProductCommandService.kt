@@ -1,7 +1,10 @@
 package com.carpenstreet.application.product.service
 
 import com.carpenstreet.application.product.request.ProductCreateRequest
+import com.carpenstreet.application.product.request.ProductReviewRequest
+import com.carpenstreet.application.product.request.ProductUpdateRequest
 import com.carpenstreet.application.product.response.ProductResponse
+import com.carpenstreet.client.NotificationClient
 import com.carpenstreet.common.exception.BadRequestException
 import com.carpenstreet.common.exception.ErrorCodes
 import com.carpenstreet.common.exception.NoAuthorizationException
@@ -24,11 +27,15 @@ import org.springframework.transaction.annotation.Transactional
 class ProductCommandService(
     private val productRepository: ProductRepository,
     private val productTranslationRepository: ProductTranslationRepository,
-    private val productReviewHistoryRepository: ProductReviewHistoryRepository
+    private val productReviewHistoryRepository: ProductReviewHistoryRepository,
+    private val notificationClient: NotificationClient,
 ) {
     // TODO : Request to DTO 변경 필요 (Response도 마찬가지)
     @Transactional
-    fun createProduct(request: ProductCreateRequest, user: UserEntity): ProductResponse {
+    fun createProduct(
+        request: ProductCreateRequest,
+        user: UserEntity
+    ): ProductResponse {
         val product = productRepository.save(
             ProductEntity(
                 partner = user,
@@ -47,8 +54,7 @@ class ProductCommandService(
         }
 
         productTranslationRepository.saveAll(translations)
-
-        return product.toResponse(translations)
+        return product.toResponse()
     }
 
     // TODO : DTO 생성 필요
@@ -56,42 +62,63 @@ class ProductCommandService(
     @Transactional
     fun updateProduct(
         productId: Long,
-        newStatus: ProductStatus,
+        request: ProductUpdateRequest,
         user: UserEntity,
-        reason: String? = null
     ): ProductEntity {
         val product = productRepository.findByIdOrThrow(productId, BadRequestException(ErrorCodes.PRODUCT_NOT_FOUND))
+        if (product.partner != user) {
+            throw IllegalAccessException("Unauthorized to update this product")
+        }
+
+        product.title = request.title
+        product.description = request.description
+        product.price = request.price
+
+        productRepository.save(product)
+        return product
+    }
+
+    @Transactional
+    fun requestReview(
+        id: Long,
+        request: ProductReviewRequest,
+        user: UserEntity
+    ): ProductResponse {
+        val product = productRepository.findByIdOrThrow(id, BadRequestException(ErrorCodes.PRODUCT_NOT_FOUND))
 
         // 1. 상태 전이 유효성 검증
-        validateProductTransition(product, newStatus)
+        validateProductTransition(product)
 
         // 2. 권한 검증
-        validatePartnerAuthority(user, product, newStatus)
+        validatePartnerAuthority(user, product, ProductStatus.REQUESTED)
 
         // 3. 상태 변경 (DirtyChecking 활용)
         val previousStatus = product.status
-        product.status = newStatus
+        product.status = ProductStatus.REQUESTED
 
-        // TODO : 이력 저장은 비동기로 처리 필요 할지 고민
         // 4. 변경 이력 저장
         val history = ProductReviewHistoryEntity(
             product = product,
             previousStatus = previousStatus,
-            newStatus = newStatus,
+            newStatus = ProductStatus.REQUESTED,
             user = user,
-            reason = reason
         )
         productReviewHistoryRepository.save(history)
 
-        return product
+        // 매니저에게 메시지 전송 (SMS 전송 API 사용)
+        notificationClient.sendSms(
+            product.partner.phone,
+            "매니저에게 메시지 전송: ${request.message}",
+        )
+
+        return product.toResponse()
     }
 
     private fun validateProductTransition(
         product: ProductEntity,
-        newStatus: ProductStatus
     ) {
-        if (!ProductStatusTransition.isValidTransition(product.status, newStatus)) {
-            throw UnchangeableStatusException("유효하지 않은 상태 전이입니다: ${product.status} → $newStatus")
+        if (!ProductStatusTransition.isValidTransition(product.status, ProductStatus.REQUESTED)) {
+            throw UnchangeableStatusException("유효하지 않은 상태 전이입니다")
         }
     }
 

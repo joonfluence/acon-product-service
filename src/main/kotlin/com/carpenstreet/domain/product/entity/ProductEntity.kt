@@ -22,18 +22,11 @@ class ProductEntity(
     @Column(nullable = false)
     var status: ProductStatus = ProductStatus.DRAFT,
 ) : BaseEntity() {
-    fun toResponse(translations: List<ProductTranslationEntity>): ProductResponse {
+    fun toResponse(): ProductResponse {
         return ProductResponse(
             id = id,
             price = price,
             status = status,
-            translations = translations.map {
-                ProductResponse.Translation(
-                    language = it.language,
-                    title = it.title,
-                    description = it.description
-                )
-            }
         )
     }
 }

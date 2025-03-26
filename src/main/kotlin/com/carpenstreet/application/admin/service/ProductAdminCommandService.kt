@@ -1,5 +1,6 @@
 package com.carpenstreet.application.admin.service
 
+import com.carpenstreet.application.admin.request.ProductStatusUpdateRequest
 import com.carpenstreet.common.exception.BadRequestException
 import com.carpenstreet.common.exception.ErrorCodes
 import com.carpenstreet.common.exception.NoAuthorizationException
@@ -11,7 +12,6 @@ import com.carpenstreet.domain.product.enums.ProductStatus
 import com.carpenstreet.domain.product.enums.ProductStatusTransition
 import com.carpenstreet.domain.product.repository.ProductRepository
 import com.carpenstreet.domain.product.repository.ProductReviewHistoryRepository
-import com.carpenstreet.domain.product.repository.ProductTranslationRepository
 import com.carpenstreet.domain.user.entity.UserEntity
 import com.carpenstreet.domain.user.enums.UserRole
 import org.springframework.stereotype.Service
@@ -24,14 +24,16 @@ class ProductAdminCommandService(
 ) {
     // TODO : DTO 생성 필요
     // TODO : update 시 정말 수정 가능한지 테스트 필요
+    // TODO : 외부 API 통신 기능이 추가로 필요
     @Transactional
     fun updateProductStatus(
         productId: Long,
-        newStatus: ProductStatus,
+        request: ProductStatusUpdateRequest,
         user: UserEntity,
-        reason: String? = null
     ): ProductEntity {
         val product = productRepository.findByIdOrThrow(productId, BadRequestException(ErrorCodes.PRODUCT_NOT_FOUND))
+        val newStatus = request.newStatus
+        val reason = request.reason
 
         // 1. 상태 전이 유효성 검증
         validateProductTransition(product, newStatus)
@@ -43,7 +45,6 @@ class ProductAdminCommandService(
         val previousStatus = product.status
         product.status = newStatus
 
-        // TODO : 이력 저장은 비동기로 처리 필요 할지 고민
         // 4. 변경 이력 저장
         val history = ProductReviewHistoryEntity(
             product = product,
@@ -52,8 +53,8 @@ class ProductAdminCommandService(
             user = user,
             reason = reason
         )
-        productReviewHistoryRepository.save(history)
 
+        productReviewHistoryRepository.save(history)
         return product
     }
 
