@@ -2,7 +2,7 @@
 
 다국어 기반 전자상거래 플랫폼 ACON에서  
 상품의 등록, 상태 전이, 다국어 처리, 사용자 권한 기반 제어 등을 제공하는  
-상품 관리 백엔드 서버입니다.
+**상품 관리 백엔드 서버**입니다.
 
 ---
 
@@ -13,6 +13,16 @@
 - 작성 → 검토요청 → 검토중 → 승인/거절 → 재요청 → 판매 완료의 상태 전이 흐름 처리
 - 외부 API 실패 대응을 위한 장애 복원 설계 포함 (Retry / CircuitBreaker / Fallback 등)
 - 고객은 선택한 언어에 맞게 상품을 조회할 수 있어야 함
+
+---
+
+## 사고의 흐름 및 구조 선택 이유
+
+- 이 과제는 단순 CRUD를 넘어, 상태 전이, 사용자 역할 제어, 외부 API 연동, 장애 복원 등 **실무급 도메인 흐름**을 구현하는 것이 핵심이라고 판단하였습니다.
+- 컨트롤러 → 서비스 → 도메인 → 이벤트/비동기 구조까지 **계층별 책임 분리**를 중심으로 설계하였습니다.
+- 외부 API 실패 대응은 실패 로그를 남기고 스케쥴러를 통해 재처리하여 단순하면서도 효과적인 복원 구조를 도입하였습니다. 
+  - 또한 무한 재처리를 막기 위해, 5번까지 요청을 보내도록 제한했습니다.  
+-  번역/문자 API는 **느슨한 결합을 위한 이벤트 기반 비동기 처리**로 구성하였습니다.
 
 ---
 
@@ -86,15 +96,13 @@ modules/
 
 ## 사용 기술
 
-| Layer       | Tech                          |
-|-------------|-------------------------------|
-| Language    | Kotlin (JVM 21)               |
-| Framework   | Spring Boot 3.x               |
-| DB          | H2 (in-memory)                |
-| Build       | Gradle (Groovy)               |
-| Resilience  | Resilience4j                  |
-| Test        | JUnit5, Mockk                 |
-| 기타        | Spring Validation, H2 Console |
+| Layer       | Tech                        |
+|-------------|-----------------------------|
+| Language    | Kotlin (JVM 21)             |
+| Framework   | Spring Boot 3.x             |
+| DB          | H2 (in-memory)              |
+| Build       | Gradle (Groovy)             |
+| Test        | JUnit5                 |
 
 
 ## 초기 실행 방법
@@ -109,28 +117,59 @@ modules/
 
 ## 가정사항 / 특이사항
 
-- 회원 가입/로그인은 인증 없이 단순한 ID 기반 처리
-- 번역 API는 실제 호출 없이 더미 응답으로 대체됨 ("${text}${language}")
-- 메시지 전송 API는 실제로는 로그 출력 기반으로 구현됨
-- 고객의 언어 선택은 파라미터(?lang=ko|en|ja)로 처리
+- 로그인/인증은 생략하고 UserContext로 시뮬레이션 처리
+- 번역 API는 실제 호출 없이 ${text}${language} 형태로 응답하는 Mock 처리
+- 문자 메시지 API는 실제로는 로그 출력 및 실패 이력 저장 구조로 처리
+- 고객의 언어 선택은 /products?lang=ko|en|ja 형식의 쿼리 파라미터 기반
+
+## 구조적 한계 및 향후 개선 방향
+
+현재 구조는 Spring의 @EventListener 기반 비동기 이벤트와 Scheduler를 활용하여 외부 API 실패를 재처리합니다.
+
+- 장점
+  - 외부 API 실패가 메인 로직에 영향을 주지 않음
+  - 단순하고 빠른 구현이 가능
+-  단점
+  - 이벤트/스케줄러가 분리되어 있어 실패 추적이 불명확
+  - 재처리 실패에 대한 후속 조치(DLQ, 알림 등) 없음
+  - 순서 보장, 중복 처리 방지 등은 미지원
+
+###  향후 개선 제안
+
+- 항목 개선 방안
+    - 비동기 이벤트 : Kafka 기반 EDA + Outbox Pattern 도입
+    - 실패 추적성 : DLQ 저장 및 재시도 횟수 제한, 상태 필드 관리
+    - 상태 일관성 : Saga 패턴 적용 및 트랜잭션 추적 강화
+    - 테스트 편의성 : Event 추상화 후 직접 호출 가능한 구조로 개선
 
 ## 확장 가능성 (멀티모듈/MSA)
 
-- 도메인 단위(product, user), 계층 단위(domain, application, client)를 분리하여 추후 기능별 모듈화 또는 서비스화(MSA)로 쉽게 전환 가능
+- 도메인 단위(product, user), 계층 단위(domain, application, client, scheduler)를 분리하여 추후 기능별 모듈화 또는 서비스화(MSA)로 쉽게 전환 가능
 - external-service는 실제 마이크로서비스로 분리 가능하도록 인터페이스화
 - common 패키지는 공통 유틸/예외처리 모듈로 독립 배포도 가능
 
 ## 시행착오 및 피드백
 
-- 외부 API 장애 대응 방식 설계 시 @Retryable vs Resilience4j의 선택 고민
-- enum 상태 전이 vs 상태 패턴 적용 중 enum으로 단순화 (복잡도 최소화)
-- 다국어 데이터 구조 설계 시 ProductContent 분리로 정규화 유지
+- TransientPropertyValueException: partner가 저장되지 않은 상태에서 상품에 참조되면 발생 → 선 save 처리로 해결
+- UserContext 테스트 문제: ThreadLocal 기반 컨텍스트로 인해 테스트에서는 명시적 set() 처리 필요
+- EventListener + Async의 테스트 어려움 → 단위 테스트에서는 handler 직접 호출 방식으로 대체
+- 상태 전이 enum vs 상태 패턴 고민 → 단순 플로우에선 enum + transitionMap이 효과적
 
-## 기타
+## 기타 기술적 고려
 
-### Auditing 구조 관련
+- 본 프로젝트는 인증 시스템이 없는 상태에서 진행되었으며,  실제 로그인/세션 처리는 구현 대상이 아니었기 때문에, 사용자 식별은 `UserContext` 기반의 시뮬레이션 처리로 대체하였습니다.
+- 실제 운영 환경에서는 JWT 기반 인증 시스템과 Spring Security를 적용하여 사용자 정보와 권한을 추출하는 것이 좋습니다.
 
-인증 시스템이 없는 환경입니다. 생성자와 수정자 이름에 대해선 "system"을 기본 값으로 설정하였고, Spring Security 환경에서는 SecurityContextHolder 기반으로 확장 가능하도록 AuditorAware를 별도 Bean으로 추상화했습니다. 실무 확장성을 고려한 유연한 설계 구조를 의도하였습니다.
+### UserContext 처리 방식
+
+- 인증된 사용자(HTTP Header 의 X-USER-ID 값 확인)는 컨트롤러 진입 전 인터셉터를 통해 `UserContext.set(user)`로 저장되고 
+- 이후 서비스 및 도메인 계층에서 `UserContext.get()`을 통해 사용자 정보를 접근합니다.
+- 테스트 환경에서는 명시적으로 `UserContext.set(mockUser)`을 주입하여 테스트 수행이 가능하도록 구성하였습니다.
+
+### Auditing 구조
+
+- 생성자/수정자 정보 및 생성/수정 시점은 `BaseTimeEntity` + Spring Auditing 기능을 통해 자동으로 관리됩니다.
+- 초기값 설정 시에는 `AuditorAware`에서 "system"이라는 기본값으로 사용자 ID를 대체하고 있습니다. 
 
 ### Country 필드 및 ISO 코드 도입 배경
 
@@ -151,10 +190,6 @@ products.partner_id는 users 테이블을 참조하지만, 도메인 상 명확�
 
 금액 계산에서의 정밀도를 보장하기 위해 `FLOAT`/`DOUBLE`이 아닌 `BigDecimal`을 사용하였습니다.   
 부동소수점 방식은 이진수 기반 근사 표현으로 인해 오차가 발생할 수 있으며, `BigDecimal` + `Decimal`은 이를 방지하기 위한 정확한 10진수 연산 방식을 제공합니다.
-
-### @ManyToOne 
-
-Entity 간 연관관계는 `@ManyToOne`으로 도메인 의미를 명확히 표현하되, 실제 조회 시에는 `QueryDSL fetch join` 또는 DTO 기반 Projection으로 성능을 안정적으로 제어합니다.
 
 ### NotNull 조건
 
@@ -178,4 +213,10 @@ State Pattern(상태 클래스 기반 설계)으로 확장하는 것이 바람�
 
 ## 마무리하며
 
-구조적 명료함, 도메인 모델 중심 설계, 장애 복원력 확보라는 세 가지 축을 기준으로 기능 확장성과 안정성을 모두 고려하여 구현하였습니다.
+이번 과제는 기능을 단순 구현하는 것을 넘어서, **실제 운영 가능한 아키텍처 수준의 구조화된 설계**에 집중하였습니다.
+
+- 상태 전이 로직의 안전성
+- 외부 API 연동의 복원력
+- 비즈니스 도메인의 명확한 책임 분리
+
+이 모든 것을 중심에 두고 설계하고 구현하였습니다.
