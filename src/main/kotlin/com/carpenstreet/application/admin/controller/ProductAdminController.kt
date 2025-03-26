@@ -1,10 +1,10 @@
 package com.carpenstreet.application.admin.controller
 
+import com.carpenstreet.application.admin.request.AdminProductGetRequest
 import com.carpenstreet.application.admin.request.ProductStatusUpdateRequest
 import com.carpenstreet.application.admin.response.ProductDetailResponse
 import com.carpenstreet.application.admin.service.ProductAdminCommandService
 import com.carpenstreet.application.admin.service.ProductAdminQueryService
-import com.carpenstreet.application.product.request.ProductGetRequest
 import com.carpenstreet.application.product.response.ProductResponse
 import com.carpenstreet.common.annotation.CurrentUser
 import com.carpenstreet.domain.user.entity.UserEntity
@@ -26,19 +26,9 @@ class ProductAdminController(
     private val productAdminCommandService: ProductAdminCommandService,
     private val productAdminQueryService: ProductAdminQueryService,
 ) {
-    @PatchMapping("/{id}/status")
-    fun updateStatus(
-        @PathVariable id: Long,
-        @RequestBody request: ProductStatusUpdateRequest,
-        @CurrentUser user: UserEntity,
-    ): ResponseEntity<ProductDetailResponse> {
-        val product = productAdminCommandService.updateProductStatus(id, request, user)
-        return ResponseEntity.ok(ProductDetailResponse.from(product))
-    }
-
-    @GetMapping("/admin/products")
+    @GetMapping
     fun getProducts(
-        request: ProductGetRequest,
+        request: AdminProductGetRequest,
         @PageableDefault(size = 10, sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable,
     ): ResponseEntity<PageImpl<ProductResponse>> {
         val products = productAdminQueryService.getProducts(request, pageable)
@@ -51,11 +41,21 @@ class ProductAdminController(
         )
     }
 
-    @GetMapping("/admin/products/{productId}")
+    @GetMapping("/{id}")
     fun getProductDetail(
-        @PathVariable productId: Long
+        @PathVariable id: Long
     ): ResponseEntity<ProductDetailResponse> {
-        val product = productAdminQueryService.getProductDetail(productId)
+        val product = productAdminQueryService.getProductDetail(id)
+        return ResponseEntity.ok(ProductDetailResponse.from(product))
+    }
+
+    @PatchMapping("/{id}/status")
+    fun updateStatus(
+        @PathVariable id: Long,
+        @RequestBody request: ProductStatusUpdateRequest,
+        @CurrentUser user: UserEntity,
+    ): ResponseEntity<ProductDetailResponse> {
+        val product = productAdminCommandService.updateProductStatus(id, request, user)
         return ResponseEntity.ok(ProductDetailResponse.from(product))
     }
 }

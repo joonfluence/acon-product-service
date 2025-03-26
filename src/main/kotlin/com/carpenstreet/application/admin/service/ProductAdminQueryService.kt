@@ -1,6 +1,6 @@
 package com.carpenstreet.application.admin.service
 
-import com.carpenstreet.application.product.request.ProductGetRequest
+import com.carpenstreet.application.admin.request.AdminProductGetRequest
 import com.carpenstreet.common.exception.BadRequestException
 import com.carpenstreet.common.exception.ErrorCodes
 import com.carpenstreet.common.extension.findByIdOrThrow
@@ -15,7 +15,7 @@ class ProductAdminQueryService(
     private val productRepository: ProductRepository,
 ) {
     fun getProducts(
-        request: ProductGetRequest,
+        request: AdminProductGetRequest,
         pageable: Pageable,
     ): Page<ProductEntity> {
         val allWithTranslations = productRepository.findAllWithTranslations(request, pageable)

@@ -71,6 +71,48 @@ VALUES
     (3, 'EN', 'Product Title 3 (EN)', 'Product Description 3 (EN)', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
     (3, 'JA', '商品タイトル3 (JA)', '商品説明3 (JA)', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system');
 
+INSERT INTO product_translations (product_id, language, title, description, created_at, created_by, updated_at, updated_by)
+VALUES
+    (4, 'KO', '한국어 상품 제목 4', '한국어 상품 설명 4', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
+    (4, 'EN', 'Product Title 4 (EN)', 'Product Description 4 (EN)', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
+    (4, 'JA', '商品タイトル4 (JA)', '商品説明4 (JA)', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system');
+
+INSERT INTO product_translations (product_id, language, title, description, created_at, created_by, updated_at, updated_by)
+VALUES
+    (5, 'KO', '한국어 상품 제목 5', '한국어 상품 설명 5', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
+    (5, 'EN', 'Product Title 5 (EN)', 'Product Description 5 (EN)', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
+    (5, 'JA', '商品タイトル5 (JA)', '商品説明5 (JA)', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system');
+
+INSERT INTO product_translations (product_id, language, title, description, created_at, created_by, updated_at, updated_by)
+VALUES
+    (6, 'KO', '한국어 상품 제목 6', '한국어 상품 설명 6', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
+    (6, 'EN', 'Product Title 6 (EN)', 'Product Description 6 (EN)', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
+    (6, 'JA', '商品タイトル6 (JA)', '商品説明6 (JA)', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system');
+
+INSERT INTO product_translations (product_id, language, title, description, created_at, created_by, updated_at, updated_by)
+VALUES
+    (7, 'KO', '한국어 상품 제목 7', '한국어 상품 설명 7', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
+    (7, 'EN', 'Product Title 7 (EN)', 'Product Description 7 (EN)', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
+    (7, 'JA', '商品タイトル7 (JA)', '商品説明7 (JA)', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system');
+
+INSERT INTO product_translations (product_id, language, title, description, created_at, created_by, updated_at, updated_by)
+VALUES
+    (8, 'KO', '한국어 상품 제목 8', '한국어 상품 설명 8', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
+    (8, 'EN', 'Product Title 8 (EN)', 'Product Description 8 (EN)', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
+    (8, 'JA', '商品タイトル8 (JA)', '商品説明8 (JA)', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system');
+
+INSERT INTO product_translations (product_id, language, title, description, created_at, created_by, updated_at, updated_by)
+VALUES
+    (9, 'KO', '한국어 상품 제목 9', '한국어 상품 설명 9', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
+    (9, 'EN', 'Product Title 9 (EN)', 'Product Description 9 (EN)', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
+    (9, 'JA', '商品タイトル9 (JA)', '商品説明9 (JA)', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system');
+
+INSERT INTO product_translations (product_id, language, title, description, created_at, created_by, updated_at, updated_by)
+VALUES
+    (10, 'KO', '한국어 상품 제목 10', '한국어 상품 설명 10', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
+    (10, 'EN', 'Product Title 10 (EN)', 'Product Description 10 (EN)', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
+    (10, 'JA', '商品タイトル10 (JA)', '商品説明10 (JA)', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system');
+
 INSERT INTO product_review_histories (product_id, previous_status, new_status, user_id, reason, created_at, created_by, updated_at, updated_by)
 VALUES
     (1, 'REQUESTED', 'REVIEWING', 2, NULL, CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
