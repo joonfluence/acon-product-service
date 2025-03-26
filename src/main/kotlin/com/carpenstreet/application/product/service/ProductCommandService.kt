@@ -56,8 +56,6 @@ class ProductCommandService(
         return product
     }
 
-    // TODO : DTO 생성 필요
-    // TODO : update 시 정말 수정 가능한지 테스트 필요
     @Transactional
     fun updateProduct(
         productId: Long,
@@ -81,7 +79,6 @@ class ProductCommandService(
         product.update(request.price)
         translation.update(request.title, request.description)
 
-        // TODO : 번역 본 수정 반영 필요
         productRepository.save(product)
         val savedTranslation = productTranslationRepository.save(translation)
 
@@ -100,7 +97,7 @@ class ProductCommandService(
         validateProductTransition(product)
 
         // 2. 권한 검증
-        validatePartnerAuthority(user, product, ProductStatus.REQUESTED)
+        validatePartnerAuthority(user, product)
 
         // 3. 상태 변경 (DirtyChecking 활용)
         val previousStatus = product.status
@@ -137,7 +134,6 @@ class ProductCommandService(
     private fun validatePartnerAuthority(
         user: UserEntity,
         product: ProductEntity,
-        newStatus: ProductStatus,
     ) {
         if (user.role != UserRole.PARTNER) {
             return
@@ -147,7 +143,7 @@ class ProductCommandService(
             throw BadRequestException(ErrorCodes.HAS_NO_PRODUCT_EDIT_AUTHORITY)
         }
 
-        if (!canPartnerTransition(product.status, newStatus)) {
+        if (!canPartnerTransition(product.status, ProductStatus.REQUESTED)) {
             throw NoAuthorizationException(ErrorCodes.HAS_NO_TRANSITION_AUTHORITY)
         }
     }

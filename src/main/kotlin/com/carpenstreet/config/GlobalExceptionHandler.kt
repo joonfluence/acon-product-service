@@ -1,11 +1,10 @@
 package com.carpenstreet.config
 
-import com.carpenstreet.common.exception.BadRequestException
+import com.carpenstreet.common.exception.BaseException
 import com.carpenstreet.common.exception.ErrorCodes
 import com.carpenstreet.common.exception.ErrorResponse
 import com.fasterxml.jackson.databind.JsonMappingException
 import jakarta.validation.ConstraintViolationException
-import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
@@ -36,10 +35,9 @@ class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(ErrorResponse.of(errorCode, errorMessage))
     }
 
-    @ExceptionHandler(BadRequestException::class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    fun handleBadRequestExceptions(ex: BadRequestException): ResponseEntity<Any> {
-        return ResponseEntity.badRequest().body(ErrorResponse.of(ErrorCodes.BAD_REQUEST, ex.localizedMessage))
+    @ExceptionHandler(BaseException::class)
+    fun handleBaseException(e: BaseException): ResponseEntity<Any> {
+        return ResponseEntity.status(e.httpStatus).body(ErrorResponse(e.errorCode, e.message, e.response))
     }
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
@@ -60,16 +58,6 @@ class GlobalExceptionHandler {
             { it.message }
         )
         return ResponseEntity.badRequest().body(ErrorResponse.of(ErrorCodes.CONSTRAINT_VIOLATION, errors))
-    }
-
-    @ExceptionHandler(DataIntegrityViolationException::class)
-    fun handleDataIntegrityViolationException(ex: DataIntegrityViolationException): ResponseEntity<Any> {
-        val errorResponse = ErrorResponse(
-            HttpStatus.BAD_REQUEST.name,
-            "데이터 무결성 제약 조건 위반",
-            null
-        )
-        return ResponseEntity.badRequest().body(errorResponse)
     }
 
     @ExceptionHandler(IllegalArgumentException::class)

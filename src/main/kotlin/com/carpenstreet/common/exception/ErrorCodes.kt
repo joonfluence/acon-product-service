@@ -15,4 +15,5 @@ enum class ErrorCodes(
     HAS_NO_PRODUCT_EDIT_AUTHORITY("PRODUCT_03", "본인의 상품만 수정할 수 있습니다."),
     HAS_NO_PERMITION_TO_READ("PRODUCT_04", "상품을 조회할 수 없습니다."),
     PARTNER_PRODUCT_NOT_EDITABLE("PRODUCT_05", "상품을 수정할 수 없는 상태입니다."),
+    ADMIN_PRODUCT_NOT_EDITABLE("PRODUCT_06", "상품을 수정할 수 없는 상태입니다."),
 }

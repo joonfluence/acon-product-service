@@ -28,3 +28,13 @@ spring:
         default-page-size: 10
         max-page-size: 100
         one-indexed-parameters: true
+resilience4j:
+  circuitbreaker:
+    instances:
+      translation:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
