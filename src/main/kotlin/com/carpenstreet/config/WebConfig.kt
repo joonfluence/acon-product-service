@@ -16,7 +16,9 @@ class WebConfig(
     override fun addInterceptors(registry: InterceptorRegistry) {
         registry.addInterceptor(UserContextInjectionInterceptor(userRepository)).order(0)
         registry.addInterceptor(AdminOnlyInterceptor()).addPathPatterns("/admin/**").order(1)
+        registry.addInterceptor(UserOnlyInterceptor()).excludePathPatterns("/swagger-ui/**", "/v3/api-docs/**").addPathPatterns("/**").order(2)
     }
 }
 
 class AdminOnlyInterceptor : RoleAuthorizationInterceptor(setOf(UserRole.ADMIN))
+class UserOnlyInterceptor : RoleAuthorizationInterceptor(setOf(UserRole.ADMIN, UserRole.PARTNER, UserRole.CUSTOMER))

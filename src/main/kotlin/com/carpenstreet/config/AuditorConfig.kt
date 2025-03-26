@@ -1,5 +1,6 @@
 package com.carpenstreet.config
 
+import com.carpenstreet.common.context.UserContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.domain.AuditorAware
@@ -11,7 +12,8 @@ class AuditorConfig {
     @Bean
     fun auditorProvider(): AuditorAware<String> {
         return AuditorAware {
-            Optional.of("system") // 인증 미사용 환경용, 추후 인증 붙이면 사용자 ID 넣기
+            val user = UserContext.get()
+            Optional.of(user.role.toString() + " : " + user.id.toString())
         }
     }
 }

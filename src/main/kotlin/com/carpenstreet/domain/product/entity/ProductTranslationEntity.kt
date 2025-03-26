@@ -27,7 +27,12 @@ class ProductTranslationEntity(
     @Column(nullable = false)
     val language: Language,
     @Column(nullable = false)
-    val title: String,
+    var title: String,
     @Column(columnDefinition = "TEXT", nullable = false)
-    val description: String,
-) : BaseEntity()
+    var description: String,
+) : BaseEntity() {
+    fun update(title: String, description: String){
+        this.title = title
+        this.description = description
+    }
+}

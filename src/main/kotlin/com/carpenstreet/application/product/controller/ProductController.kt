@@ -50,7 +50,7 @@ class ProductController(
         @CurrentUser user: UserEntity,
     ): ResponseEntity<ProductResponse> {
         val result = productCommandService.createProduct(request, user)
-        return ResponseEntity.ok(result)
+        return ResponseEntity.ok(ProductResponse.from(result))
     }
 
     @GetMapping("/{id}")
@@ -65,9 +65,8 @@ class ProductController(
     fun updateProduct(
         @PathVariable id: Long,
         @RequestBody request: ProductUpdateRequest,
-        @CurrentUser user: UserEntity,
     ): ResponseEntity<ProductResponse> {
-        val product = productCommandService.updateProduct(id, request, user)
+        val product = productCommandService.updateProduct(id, request)
         return ResponseEntity.ok(ProductResponse.from(product))
     }
 

@@ -1,5 +1,6 @@
 package com.carpenstreet.application.product.response
 
+import com.carpenstreet.application.product.dto.ProductDetailUserDto
 import com.carpenstreet.application.product.dto.ProductUserProjection
 import com.carpenstreet.domain.product.entity.ProductEntity
 import com.carpenstreet.domain.product.enums.ProductStatus
@@ -21,6 +22,19 @@ data class ProductResponse(
                 id = product.id,
                 price = product.price,
                 status = product.status,
+            )
+        }
+
+        fun from(
+            product: ProductDetailUserDto,
+        ) : ProductResponse {
+            return ProductResponse(
+                id = product.id,
+                price = product.price,
+                status = product.status,
+                title = product.title,
+                description = product.description,
+                partner = UserResponse.from(product.partner)
             )
         }
 

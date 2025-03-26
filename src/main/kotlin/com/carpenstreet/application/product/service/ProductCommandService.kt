@@ -1,16 +1,18 @@
 package com.carpenstreet.application.product.service
 
+import com.carpenstreet.application.product.dto.ProductDetailUserDto
 import com.carpenstreet.application.product.request.ProductCreateRequest
 import com.carpenstreet.application.product.request.ProductReviewRequest
 import com.carpenstreet.application.product.request.ProductUpdateRequest
-import com.carpenstreet.application.product.response.ProductResponse
 import com.carpenstreet.client.notification.NotificationClient
 import com.carpenstreet.client.notification.dto.SmsRequest
+import com.carpenstreet.common.context.UserContext
 import com.carpenstreet.common.exception.BadRequestException
 import com.carpenstreet.common.exception.ErrorCodes
 import com.carpenstreet.common.exception.NoAuthorizationException
 import com.carpenstreet.common.exception.UnchangeableStatusException
 import com.carpenstreet.common.extension.findByIdOrThrow
+import com.carpenstreet.domain.common.enums.Language
 import com.carpenstreet.domain.product.entity.ProductEntity
 import com.carpenstreet.domain.product.entity.ProductReviewHistoryEntity
 import com.carpenstreet.domain.product.entity.ProductTranslationEntity
@@ -36,7 +38,7 @@ class ProductCommandService(
     fun createProduct(
         request: ProductCreateRequest,
         user: UserEntity
-    ): ProductResponse {
+    ): ProductEntity {
         val product = productRepository.save(
             ProductEntity(
                 partner = user,
@@ -44,18 +46,14 @@ class ProductCommandService(
                 status = ProductStatus.DRAFT
             )
         )
-
-        val translations = request.translations.map {
-            ProductTranslationEntity(
-                product = product,
-                language = it.language,
-                title = it.title,
-                description = it.description
-            )
-        }
-
-        productTranslationRepository.saveAll(translations)
-        return product.toResponse()
+        val translation = ProductTranslationEntity(
+            product = product,
+            language = Language.KO,
+            title = request.title,
+            description = request.description
+        )
+        productTranslationRepository.save(translation)
+        return product
     }
 
     // TODO : DTO 생성 필요
@@ -64,16 +62,30 @@ class ProductCommandService(
     fun updateProduct(
         productId: Long,
         request: ProductUpdateRequest,
-        user: UserEntity,
-    ): ProductEntity {
+    ): ProductDetailUserDto {
         val product = productRepository.findByIdOrThrow(productId, BadRequestException(ErrorCodes.PRODUCT_NOT_FOUND))
-        if (product.partner != user) {
-            throw IllegalAccessException("Unauthorized to update this product")
+        val partner = product.partner
+        val user = UserContext.get()
+
+        if (partner.id != user.id) {
+            throw BadRequestException(ErrorCodes.HAS_NO_PRODUCT_EDIT_AUTHORITY)
         }
+
+        if (!ProductStatus.DRAFT.equals(product.status) && !ProductStatus.REJECTED.equals(product.status)){
+            throw BadRequestException(ErrorCodes.PARTNER_PRODUCT_NOT_EDITABLE)
+        }
+
+        val translation =
+            productTranslationRepository.findByProductIdAndLanguage(product.id, Language.KO)
+
+        product.update(request.price)
+        translation.update(request.title, request.description)
 
         // TODO : 번역 본 수정 반영 필요
         productRepository.save(product)
-        return product
+        val savedTranslation = productTranslationRepository.save(translation)
+
+        return ProductDetailUserDto.of(product, savedTranslation, partner)
     }
 
     @Transactional
@@ -81,7 +93,7 @@ class ProductCommandService(
         id: Long,
         request: ProductReviewRequest,
         user: UserEntity
-    ): ProductResponse {
+    ): ProductEntity {
         val product = productRepository.findByIdOrThrow(id, BadRequestException(ErrorCodes.PRODUCT_NOT_FOUND))
 
         // 1. 상태 전이 유효성 검증
@@ -111,7 +123,7 @@ class ProductCommandService(
             )
         )
 
-        return product.toResponse()
+        return product
     }
 
     private fun validateProductTransition(
