@@ -20,5 +20,6 @@ class TranslationFailureEntity(
     val targetLanguage: Language,
     val title: String,
     val description: String,
+    var retryCount: Int = 0,
     val reason: String? = null,
 ) : BaseEntity()

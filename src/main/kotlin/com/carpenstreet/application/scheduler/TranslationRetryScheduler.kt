@@ -21,7 +21,7 @@ class TranslationRetryScheduler(
     @Scheduled(fixedDelay = 10 * 60 * 1000) // 10분마다
     @Transactional
     fun retryFailedTranslations() {
-        val failures = failureRepository.findTop100ByOrderByCreatedAtAsc()
+        val failures = failureRepository.findTop100ByRetryCountLessThanOrderByCreatedAtAsc(5)
 
         failures.forEach { failure ->
             try {
@@ -41,8 +41,17 @@ class TranslationRetryScheduler(
                 failureRepository.delete(failure)
 
             } catch (ex: Exception) {
-                log.error("Retry failed for product ${failure.productId} (${failure.targetLanguage}): ${ex.message}")
+                failure.retryCount += 1
+                failureRepository.save(failure)
+                log.error("[RETRY_FAIL] id=${failure.id}, count=${failure.retryCount}", ex)
             }
+        }
+
+        // 실패 5회 이상은 별도 로그로 추적
+        val exceeded = failureRepository.findByRetryCountGreaterThanEqual(5)
+        exceeded.forEach {
+            log.warn("[RETRY_LIMIT_EXCEEDED] id=${it.id} exceeded retry limit")
+            // TODO: 향후 Slack 알림 연동 필요
         }
     }
 }

@@ -16,8 +16,7 @@ class NotificationRetryScheduler(
 
     @Scheduled(fixedDelay = 10 * 60 * 1000) // 10분마다
     fun retryFailedSms() {
-        val failures = failureRepository.findTop100ByOrderByCreatedAtAsc()
-        if (failures.isEmpty()) return
+        val failures = failureRepository.findTop100ByRetryCountLessThanOrderByCreatedAtAsc(5)
 
         failures.forEach { failure ->
             try {
@@ -30,13 +29,25 @@ class NotificationRetryScheduler(
 
                 if (response.result == "success") {
                     failureRepository.delete(failure)
-                    log.info("문자 재발송 성공: ${failure.phone}")
+                    log.info("[SMS_RETRY_SUCCESS] phone=${failure.phone}")
                 } else {
-                    log.warn("재발송 실패 (API 응답): ${response.reason}")
+                    failure.retryCount += 1
+                    failureRepository.save(failure)
+                    log.warn("[SMS_RETRY_FAIL] phone=${failure.phone}, reason=${response.reason}")
                 }
+
             } catch (ex: Exception) {
-                log.error("재발송 실패 (예외): ${ex.message}", ex)
+                failure.retryCount += 1
+                failureRepository.save(failure)
+                log.error("[SMS_RETRY_EXCEPTION] phone=${failure.phone}, count=${failure.retryCount}", ex)
             }
+        }
+
+        // 5회 초과 실패 로그
+        val exceeded = failureRepository.findByRetryCountGreaterThanEqual(5)
+        exceeded.forEach {
+            log.warn("[SMS_RETRY_LIMIT_EXCEEDED] id=${it.id}, phone=${it.phone} → 알림 필요")
+            // TODO: Slack 알림 시스템 연동 예정
         }
     }
 }

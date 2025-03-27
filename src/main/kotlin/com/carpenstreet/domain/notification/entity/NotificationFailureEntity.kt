@@ -14,5 +14,6 @@ class NotificationFailureEntity(
     val id: Long = 0L,
     val phone: String,
     val message: String,
+    var retryCount: Int = 0,
     val reason: String? = null,
 ) : BaseEntity()
