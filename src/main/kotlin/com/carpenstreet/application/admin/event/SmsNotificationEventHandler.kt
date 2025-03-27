@@ -1,7 +1,7 @@
 package com.carpenstreet.application.admin.event
 
 import com.carpenstreet.client.notification.NotificationClient
-import com.carpenstreet.client.notification.dto.SmsRequest
+import com.carpenstreet.client.notification.request.SmsRequest
 import com.carpenstreet.domain.notification.entity.NotificationFailureEntity
 import com.carpenstreet.domain.notification.repository.NotificationFailureRepository
 import org.slf4j.LoggerFactory

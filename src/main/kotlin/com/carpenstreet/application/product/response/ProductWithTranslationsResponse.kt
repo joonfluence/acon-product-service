@@ -1,5 +1,6 @@
 package com.carpenstreet.application.product.response
 
+import com.carpenstreet.client.translation.response.TranslationResponse
 import com.carpenstreet.domain.product.enums.ProductStatus
 import java.math.BigDecimal
 

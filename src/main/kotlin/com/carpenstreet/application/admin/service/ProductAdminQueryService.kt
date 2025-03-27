@@ -2,7 +2,7 @@ package com.carpenstreet.application.admin.service
 
 import com.carpenstreet.application.admin.request.AdminProductGetRequest
 import com.carpenstreet.application.product.response.ProductWithTranslationsResponse
-import com.carpenstreet.application.product.response.TranslationResponse
+import com.carpenstreet.client.translation.response.TranslationResponse
 import com.carpenstreet.application.product.response.UserResponse
 import com.carpenstreet.common.exception.BadRequestException
 import com.carpenstreet.common.exception.ErrorCodes
@@ -55,7 +55,7 @@ class ProductAdminQueryService(
         productId: Long,
     ): ProductEntity {
         val product =
-            productRepository.findByIdOrThrow(productId, BadRequestException(ErrorCodes.PRODUCT_NOT_FOUND));
+            productRepository.findByIdOrThrow(productId, BadRequestException(ErrorCodes.PRODUCT_NOT_FOUND))
 
         val current =
             productTranslationRepository.findByProductIdAndLanguage(product.id, Language.KO)

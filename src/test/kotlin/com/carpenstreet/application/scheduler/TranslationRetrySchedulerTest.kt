@@ -1,8 +1,8 @@
 package com.carpenstreet.application.scheduler
 
-import com.carpenstreet.application.product.request.TranslationRequest
-import com.carpenstreet.application.product.response.TranslationResponse
-import com.carpenstreet.client.TranslationClient
+import com.carpenstreet.client.translation.request.TranslationRequest
+import com.carpenstreet.client.translation.response.TranslationResponse
+import com.carpenstreet.client.translation.TranslationClient
 import com.carpenstreet.common.context.UserContext
 import com.carpenstreet.domain.common.enums.Country
 import com.carpenstreet.domain.common.enums.Language

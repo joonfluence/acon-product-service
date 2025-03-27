@@ -1,7 +1,7 @@
 package com.carpenstreet.application.scheduler
 
-import com.carpenstreet.application.product.request.TranslationRequest
-import com.carpenstreet.client.TranslationClient
+import com.carpenstreet.client.translation.request.TranslationRequest
+import com.carpenstreet.client.translation.TranslationClient
 import com.carpenstreet.domain.product.repository.ProductTranslationRepository
 import com.carpenstreet.domain.translation.repository.TranslationFailureRepository
 import jakarta.transaction.Transactional

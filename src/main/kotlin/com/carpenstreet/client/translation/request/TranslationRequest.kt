@@ -1,8 +1,8 @@
-package com.carpenstreet.application.product.response
+package com.carpenstreet.client.translation.request
 
 import com.carpenstreet.domain.common.enums.Language
 
-data class TranslationResponse(
+data class TranslationRequest(
     val language: Language,
     val title: String,
     val description: String

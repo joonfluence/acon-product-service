@@ -1,7 +1,7 @@
 package com.carpenstreet.application.scheduler
 
 import com.carpenstreet.client.notification.NotificationClient
-import com.carpenstreet.client.notification.dto.SmsRequest
+import com.carpenstreet.client.notification.request.SmsRequest
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component

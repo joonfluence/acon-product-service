@@ -1,7 +1,7 @@
 package com.carpenstreet.application.admin.event
 
-import com.carpenstreet.application.product.request.TranslationRequest
-import com.carpenstreet.client.TranslationClient
+import com.carpenstreet.client.translation.request.TranslationRequest
+import com.carpenstreet.client.translation.TranslationClient
 import com.carpenstreet.common.exception.BadRequestException
 import com.carpenstreet.common.exception.ErrorCodes
 import com.carpenstreet.common.extension.findByIdOrThrow

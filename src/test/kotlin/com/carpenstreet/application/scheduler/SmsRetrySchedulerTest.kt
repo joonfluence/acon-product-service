@@ -1,8 +1,8 @@
 package com.carpenstreet.application.scheduler
 
-import com.carpenstreet.application.admin.response.NotificationResponse
 import com.carpenstreet.client.notification.NotificationClient
-import com.carpenstreet.client.notification.dto.SmsRequest
+import com.carpenstreet.client.notification.request.SmsRequest
+import com.carpenstreet.client.notification.response.NotificationResponse
 import com.carpenstreet.common.context.UserContext
 import com.carpenstreet.domain.common.enums.Country
 import com.carpenstreet.domain.notification.entity.NotificationFailureEntity

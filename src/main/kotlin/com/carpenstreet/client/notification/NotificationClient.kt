@@ -1,7 +1,7 @@
 package com.carpenstreet.client.notification
 
-import com.carpenstreet.application.admin.response.NotificationResponse
-import com.carpenstreet.client.notification.dto.SmsRequest
+import com.carpenstreet.client.notification.response.NotificationResponse
+import com.carpenstreet.client.notification.request.SmsRequest
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
