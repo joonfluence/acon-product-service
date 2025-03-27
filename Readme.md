@@ -11,7 +11,7 @@
 - 상품 상태에 따라 다양한 사용자 권한을 분기하여 로직을 처리할 수 있어야 함
 - 상품 정보를 다국어(한/영/일)로 관리하고, 외부 번역 API를 연동
 - 작성 → 검토요청 → 검토중 → 승인/거절 → 재요청 → 판매 완료의 상태 전이 흐름 처리
-- 외부 API 실패 대응을 위한 장애 복원 설계 포함 (Retry / CircuitBreaker / Fallback 등)
+- 외부 API 실패 대응을 위한 장애 복원 설계 포함 (Retry / 향후 동기식 통신에 한해, CircuitBreaker, Fallback 도 적용 가능)
 - 고객은 선택한 언어에 맞게 상품을 조회할 수 있어야 함
 
 ---
@@ -75,24 +75,24 @@ modules/
 
 ## ERD 및 UML 다이어그램
 
-![erd-2](./src/main/resources/docs/erd-2.png)
-![erd-1](./src/main/resources/docs/erd-1.png)
+![erd-2](./docs/erd-2.png)
+![erd-1](./docs/erd-1.png)
 
-- 전체 DDL 및 DML은 /src/main/resources/init 폴더에서 확인하실 수 있습니다.
+- 전체 DDL 및 DML은 /init 폴더에서 확인하실 수 있습니다.
 
 ### 시퀀스 다이어그램
 
 - 검토 요청 → 검토 중 : 비동기 흐름, 외부 API 연동
 
-![reviewing-event-flow](./src/main/resources/docs/reviewing-event-flow.svg)
+![reviewing-event-flow](./docs/reviewing-event-flow.svg)
 
 - 검토 중 → 거절 : 번역 삭제 + 문자 발송 + 상태 전이
 
-![reject-event-flow](./src/main/resources/docs/reject-event-flow.svg)
+![reject-event-flow](./docs/reject-event-flow.svg)
 
 - 검토 중 → 완료 : 문자 발송 + 상품 판매 상태
 
-![approve-event-flow](./src/main/resources/docs/approve-event-flow.svg)
+![approve-event-flow](./docs/approve-event-flow.svg)
 
 ## 설계 전략 및 고려사항
 
@@ -106,13 +106,16 @@ modules/
 
 3. 계층적 구조 분리
    - application / domain / client / scheduler 계층을 나누어 유지보수성과 재사용성 확보
+     - application: 요청 처리, 트랜잭션 단위 조합 및 이벤트 발행
+     - domain: 상태 전이, 정책 판단, 핵심 로직 처리 책임
+     - client: 외부 API 통신 추상화 계층 (테스트 대체 가능하도록 설계)
+     - scheduler : 실패 시 재처리 로직 담당 (향후 스케쥴러 서버 혹은 배치 서버로 이관 가능)
    - service 레이어는 가능하면 비즈니스 규칙 없이 orchestration 위주로 구성
-   - 핵심 상태 전이는 도메인이 책임
 
 4. 테스트 및 품질
-   - 단위 테스트는 외부 연동 API에 대해서만 작성
-   - 아쉬운 점: 제한된 시간으로 인해 일부 서비스/컨트롤러 레벨의 테스트는 작성하지 못함 
-     - 상태 전이 및 이벤트 발행 등
+   - 제한된 시간으로 인해, 컨트롤러 및 서비스 전반의 테스트는 작성하지 못했으나, 외부 API 통신 및 재시도 로직에 대한 테스트는 포함되어 있습니다.
+   - 외부 API는 Mocking 및 Stub 구성으로 테스트 시 예외 상황까지 커버할 수 있도록 구성하였습니다.
+   - 주요 상태 전이 (`REQUESTED` → `REVIEWING` → `REJECTED/APPROVED`) 흐름을 테스트 코드로 검증해보는 것이 다음 확장 목표입니다.
 
 ## 사용 기술
 
@@ -124,7 +127,7 @@ modules/
 | Build       | Gradle (Groovy)             |
 | Test        | JUnit5                 |
 
-## 초기 실행 방법
+## 실행 및 테스트 방법 
 
 ```bash
 ./gradlew clean build
@@ -134,9 +137,10 @@ modules/
 - 접속: http://localhost:8080
 - H2 Console: http://localhost:8080/h2-console (JDBC URL: jdbc:h2:mem:testdb)
 - API Docs : http://localhost:8080/swagger-ui/index.html
+  - ![img.png](docs/img.png) 
   - 작가 권한 API 테스트의 경우 : X-USER-ID 값에 1를 넣어주시면 됩니다. 
   - 어드민 권한 API 테스트의 경우 : X-USER-ID 값에 2를 넣어주시면 됩니다. 
-  - 유저 권한 API 테스트의 경우 : X-USER-ID 값에 3를 넣어주시면 됩니다. 
+  - 유저 권한 API 테스트의 경우 : X-USER-ID 값에 3를 넣어주시면 됩니다.
 
 ### 페이지네이션 테스트 방법
 
@@ -167,13 +171,20 @@ curl -X 'GET' \
     - 재처리 실패에 대한 후속 조치(DLQ, 알림 등) 없음
     - 순서 보장, 중복 처리 방지 등은 미지원
 
-###  향후 개선 제안
+### 향후 개선 제안 (운영 환경 고려)
 
-- 항목 개선 방안
-    - 비동기 이벤트 : Kafka 기반 EDA + Outbox Pattern 도입
-    - 실패 추적성 : DLQ 저장 및 재시도 횟수 제한, 상태 필드 관리
-    - 상태 일관성 : Saga 패턴 적용 및 트랜잭션 추적 강화
-    - 테스트 편의성 : Event 추상화 후 직접 호출 가능한 구조로 개선
+현 구조는 `@EventListener` + `Scheduler` 기반의 단순한 복원 처리 방식이지만,  
+운영 환경에서 Kafka 기반의 이벤트 아키텍처(EDA)를 사용하고 있다면, 다음과 같은 확장도 고려할 수 있습니다.
+
+| 항목 | 현재 방식 | 확장 방향 |
+|------|-----------|-----------|
+| 비동기 이벤트 처리 | `@EventListener` + `@Async` | Kafka Producer + Outbox Pattern |
+| 장애 추적 | 실패 이력 DB 저장 | DLQ(Kafka Dead Letter Queue) 저장 |
+| 재처리 방식 | Scheduler 기반 재시도 | Kafka Retry Topic 또는 Consumer Retry |
+| 메시지 전송 방식 | 내부 이벤트 기반 | Kafka 이벤트 기반 전파 (Notification Service 등) |
+
+> 현재 구조는 Event Handler를 추상화하여 추후 Kafka Publisher로의 교체가 용이하도록 설계되어 있으며,  
+> `TranslationClient`, `NotificationClient` 또한 분리된 외부 모듈 구조로 MSA 분리에 적합한 구조입니다.
 
 ## 확장 가능성 (멀티모듈/MSA)
 
@@ -183,10 +194,53 @@ curl -X 'GET' \
 
 ## 시행착오 및 피드백
 
-- TransientPropertyValueException: partner가 저장되지 않은 상태에서 상품에 참조되면 발생 → 선 save 처리로 해결
-- UserContext 테스트 문제: ThreadLocal 기반 컨텍스트로 인해 테스트에서는 명시적 set() 처리 필요
-- EventListener + Async의 테스트 어려움 → 단위 테스트에서는 handler 직접 호출 방식으로 대체
-- 상태 전이 enum vs 상태 패턴 고민 → 단순 플로우에선 enum + transitionMap이 효과적
+1. TranslationClient 비동기 실패 처리 누락 → 재시도 불가 문제
+- 문제: 번역 API 호출 실패 시, 아무 처리 없이 예외만 발생하고 종료됨
+- 원인: @Async @EventListener에서 실패 시 예외 전파가 swallow되며 누락됨
+- 해결: 실패 정보를 TranslationFailureEntity에 저장하고, 별도 Scheduler에서 재시도 구조로 분리
+- 교훈: 비동기 로직에서 실패 추적이 되지 않으면 무한 장애로 이어질 수 있으므로 반드시 로그 or 실패 저장 + 재처리 구조 필요 
+
+2.️ UserContext NullPointerException (테스트 환경)
+
+  - 문제: 테스트 실행 중 UserContext.get() 호출 시 NPE 발생
+  - 원인: ThreadLocal 기반의 컨텍스트가 명시적으로 set()되지 않은 상태에서 사용됨
+  - 해결: 테스트 시작 전 UserContext.set(mockUser)을 명시적으로 호출
+  - 교훈: ThreadLocal 기반은 테스트에 매우 취약하므로 반드시 명시적으로 초기화해야 하며, Spring Security 기반 구조에서는 AuditorAware를 활용하는 것이 안전함
+
+3. TransientPropertyValueException (엔티티 저장 순서 오류)
+
+- 문제: ProductEntity 저장 시 partner가 Transient 상태라 예외 발생
+- 원인: UserEntity를 먼저 저장하지 않고 참조만 한 상태로 상품 저장 시도
+- 해결: UserRepository.save()를 먼저 호출 후, ProductEntity.partner에 할당
+- 교훈: JPA의 cascade, 영속성 컨텍스트, 연관관계 저장 순서를 정확히 이해하고 있어야 함
+
+4. 상품 상세 조회 시 권한 체크 누락
+
+- 문제: 고객이 상태가 APPROVED가 아닌 상품도 모두 조회 가능
+- 원인: 권한 체크 없이 모든 상품에 접근 허용
+- 해결: UserRole 기반 접근 제어 추가 (고객은 APPROVED만 조회 가능 / 작가는 자신의 상품 또는 APPROVED만)
+- 교훈: API 설계 시 권한 분기 로직은 모든 read/write 에 대해 명시적 방어 코드가 필요
+
+5. 이벤트 기반 구조 테스트 불가 문제
+
+- 문제: @EventListener + @Async 구조는 테스트에서 이벤트 핸들러 동작 확인이 어려움
+- 원인: 테스트에서는 이벤트 퍼블리싱이 비동기적으로 작동하여 assertion 시점이 보장되지 않음
+- 해결: 핸들러를 별도 메서드로 분리하고 테스트에서는 직접 메서드를 호출하여 확인
+- 교훈: 이벤트 핸들러는 핵심 로직과 분리하여 재사용 가능하게 구성해야 테스트 및 유지보수에 유리
+
+6. 다국어 데이터 미존재 시 NPE 발생
+
+- 문제: 상품의 특정 언어 번역 정보가 존재하지 않으면 findByProductIdAndLanguage()가 null 반환
+- 원인: 초기 번역 데이터 미생성 + null 체크 누락
+- 해결: 번역이 없을 경우 생성/초기화 로직 추가
+- 교훈: 외부 연동 기반 다국어 데이터는 조회 실패를 전제로 null-safe 설계가 필요
+
+7. 무한 재시도 구조 (스케줄러)
+
+- 문제: 실패 이력 재시도 구조에서 retryCount 제한이 없어서 무한 재시도 발생 가능
+- 원인: retryCount 조건 분기 없이 모든 실패 이력을 반복 처리
+- 해결: 5회 이상 시 재시도 대상 제외 + Slack 알림 연동 준비 (현재는 로그만)
+- 교훈: 모든 재시도 로직에는 idempotent 보장 + 재시도 제한 조건을 명확히 걸어야 운영 리스크를 방지할 수 있음
 
 ## 기타 기술적 고려
 
