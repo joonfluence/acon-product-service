@@ -5,9 +5,9 @@ import com.carpenstreet.application.product.request.ProductGetRequest
 import com.carpenstreet.application.product.request.ProductReviewRequest
 import com.carpenstreet.application.product.request.ProductUpdateRequest
 import com.carpenstreet.application.product.response.ProductResponse
-import com.carpenstreet.application.product.response.ProductUserResponse
 import com.carpenstreet.application.product.service.ProductCommandService
 import com.carpenstreet.application.product.service.ProductQueryService
+import com.carpenstreet.domain.common.enums.Language
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -72,10 +73,12 @@ class ProductController(
     @GetMapping("/{id}")
     fun getProductDetail(
         @Parameter(description = "상품 ID", required = true)
-        @PathVariable id: Long
-    ): ResponseEntity<ProductUserResponse> {
-        val product = productQueryService.getProductDetail(id)
-        return ResponseEntity.ok(ProductUserResponse.from(product))
+        @PathVariable id: Long,
+        @Parameter(description = "언어코드 (ko, en, ja)", required = false)
+        @RequestParam(name = "lang", defaultValue = "ko") lang: Language
+    ): ResponseEntity<ProductResponse> {
+        val product = productQueryService.getProductDetail(id, lang)
+        return ResponseEntity.ok(ProductResponse.from(product))
     }
 
     @Operation(

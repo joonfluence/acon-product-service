@@ -12,7 +12,6 @@ import com.carpenstreet.common.extension.findByIdOrThrow
 import com.carpenstreet.domain.common.enums.Language
 import com.carpenstreet.domain.product.entity.ProductEntity
 import com.carpenstreet.domain.product.entity.ProductReviewHistoryEntity
-import com.carpenstreet.domain.product.entity.ProductTranslationEntity
 import com.carpenstreet.domain.product.enums.ProductStatus
 import com.carpenstreet.domain.product.enums.ProductStatusTransition
 import com.carpenstreet.domain.product.repository.ProductRepository
@@ -109,6 +108,8 @@ class ProductAdminCommandService(
     @Transactional
     fun rejectProduct(productId: Long, reason: String?) {
         val product = productRepository.findByIdOrThrow(productId, BadRequestException(ErrorCodes.PRODUCT_NOT_FOUND))
+        val translation =
+            productTranslationRepository.findByProductIdAndLanguage(product.id, Language.KO)
         require(product.status == ProductStatus.REVIEWING) {
             "상품은 검토 중 상태여야 합니다."
         }
@@ -132,6 +133,8 @@ class ProductAdminCommandService(
             newStatus = newStatus,
             user = UserContext.get(),
             message = reason,
+            snapshotTitleKo = translation.title,
+            snapshotDescriptionKo = translation.description
         )
 
         productReviewHistoryRepository.save(history)
