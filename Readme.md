@@ -73,6 +73,15 @@ modules/
 
 </details>
 
+## ERD
+
+![erd-2](./src/main/resources/erd/erd-2.png)
+![erd-1](./src/main/resources/erd/erd-1.png)
+
+```sql
+
+```
+
 ## 설계 전략 및 고려사항
 
 1. 상태 전이 모델링
@@ -112,6 +121,7 @@ modules/
 
 - 접속: http://localhost:8080
 - H2 Console: http://localhost:8080/h2-console (JDBC URL: jdbc:h2:mem:testdb)
+- API Docs : http://localhost:8080/swagger-ui/index.html
 
 ## 가정사항 / 특이사항
 

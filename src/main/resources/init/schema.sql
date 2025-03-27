@@ -24,6 +24,8 @@ CREATE TABLE IF NOT EXISTS products
     CONSTRAINT fk_product_partner FOREIGN KEY (partner_id) REFERENCES users (id)
 );
 
+CREATE INDEX idx_products_partner_status ON products(partner_id, status);
+
 CREATE TABLE IF NOT EXISTS product_translations
 (
     id          BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -37,6 +39,8 @@ CREATE TABLE IF NOT EXISTS product_translations
     updated_by  VARCHAR(100),
     CONSTRAINT fk_translation_product FOREIGN KEY (product_id) REFERENCES products (id)
 );
+
+CREATE INDEX idx_product_translation_pid_lang ON product_translations(product_id, language);
 
 CREATE TABLE IF NOT EXISTS product_review_histories
 (
@@ -64,6 +68,7 @@ CREATE TABLE IF NOT EXISTS translation_failures
     title           VARCHAR(100),
     description     VARCHAR(255),
     reason          VARCHAR(255),
+    retry_count INT DEFAULT 0,
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by      VARCHAR(100),
     updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -76,6 +81,7 @@ CREATE TABLE IF NOT EXISTS notification_failures
     phone      VARCHAR(20),
     message    VARCHAR(1024),
     reason     VARCHAR(255),
+    retry_count INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by VARCHAR(100),
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
