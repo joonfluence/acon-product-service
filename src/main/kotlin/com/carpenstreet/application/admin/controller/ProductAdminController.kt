@@ -12,7 +12,6 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.data.web.PageableDefault
@@ -40,7 +39,6 @@ class ProductAdminController(
     fun getProducts(
         @Parameter(description = "상품 필터 조건", required = false)
         request: AdminProductGetRequest,
-        @Parameter(hidden = true)
         @PageableDefault(size = 10, sort = ["createdAt"], direction = Sort.Direction.DESC)
         pageable: Pageable,
     ): ResponseEntity<Page<ProductWithTranslationsResponse>> {

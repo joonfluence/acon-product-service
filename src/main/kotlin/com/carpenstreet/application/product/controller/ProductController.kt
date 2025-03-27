@@ -8,7 +8,6 @@ import com.carpenstreet.application.product.response.ProductResponse
 import com.carpenstreet.application.product.response.ProductUserResponse
 import com.carpenstreet.application.product.service.ProductCommandService
 import com.carpenstreet.application.product.service.ProductQueryService
-import com.carpenstreet.common.context.UserContext
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -41,7 +40,6 @@ class ProductController(
     fun getProducts(
         @Parameter(description = "상품 필터 조건", required = false)
         request: ProductGetRequest,
-        @Parameter(hidden = true)
         @PageableDefault(size = 10, sort = ["createdAt"], direction = Sort.Direction.DESC)
         pageable: Pageable,
     ): ResponseEntity<PageImpl<ProductResponse>> {

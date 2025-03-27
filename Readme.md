@@ -138,6 +138,16 @@ modules/
   - 어드민 권한 API 테스트의 경우 : X-USER-ID 값에 2를 넣어주시면 됩니다. 
   - 유저 권한 API 테스트의 경우 : X-USER-ID 값에 3를 넣어주시면 됩니다. 
 
+### 페이지네이션 테스트 방법
+
+- 목록 조회 API 예시입니다. sort = createdAt,desc / createdAt,asc 등으로 내림차순, 오름차순 정렬 가능합니다.
+
+```bash
+curl -X 'GET' \
+  'http://localhost:8080/admin/products?status=REQUESTED&page=0&size=10&sort=createdAt,desc' \
+  -H 'X-USER-ID: 2'
+```
+
 ## 가정사항 / 특이사항
 
 - 로그인/인증은 생략하고 UserContext로 시뮬레이션 처리

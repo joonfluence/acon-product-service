@@ -22,31 +22,31 @@ VALUES
 -- DRAFT
 INSERT INTO products (partner_id, price, status, created_at, created_by, updated_at, updated_by)
 VALUES
-    (1, 12000.00, 'DRAFT', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
-    (4, 22000.00, 'DRAFT', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system');
+    (1, 12000.00, 'DRAFT', DATEADD(MINUTE, -9, CURRENT_TIMESTAMP), 'system', DATEADD(MINUTE, -9, CURRENT_TIMESTAMP), 'system'),
+    (4, 22000.00, 'DRAFT', DATEADD(MINUTE, -8, CURRENT_TIMESTAMP), 'system', DATEADD(MINUTE, -8, CURRENT_TIMESTAMP), 'system');
 
 -- REQUESTED
 INSERT INTO products (partner_id, price, status, created_at, created_by, updated_at, updated_by)
 VALUES
-    (1, 18000.00, 'REQUESTED', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
-    (7, 25000.00, 'REQUESTED', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system');
+    (1, 18000.00, 'REQUESTED', DATEADD(MINUTE, -7, CURRENT_TIMESTAMP), 'system', DATEADD(MINUTE, -7, CURRENT_TIMESTAMP), 'system'),
+    (7, 25000.00, 'REQUESTED', DATEADD(MINUTE, -6, CURRENT_TIMESTAMP), 'system', DATEADD(MINUTE, -6, CURRENT_TIMESTAMP), 'system');
 
 -- REVIEWING
 INSERT INTO products (partner_id, price, status, created_at, created_by, updated_at, updated_by)
 VALUES
-    (4, 15000.00, 'REVIEWING', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
-    (7, 19900.00, 'REVIEWING', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system');
+    (4, 15000.00, 'REVIEWING', DATEADD(MINUTE, -5, CURRENT_TIMESTAMP), 'system', DATEADD(MINUTE, -5, CURRENT_TIMESTAMP), 'system'),
+    (7, 19900.00, 'REVIEWING', DATEADD(MINUTE, -4, CURRENT_TIMESTAMP), 'system', DATEADD(MINUTE, -4, CURRENT_TIMESTAMP), 'system');
 
 -- REJECTED
 INSERT INTO products (partner_id, price, status, created_at, created_by, updated_at, updated_by)
 VALUES
-    (1, 9000.00, 'REJECTED', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
-    (4, 16000.00, 'REJECTED', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system');
+    (1, 9000.00, 'REJECTED', DATEADD(MINUTE, -3, CURRENT_TIMESTAMP), 'system', DATEADD(MINUTE, -3, CURRENT_TIMESTAMP), 'system'),
+    (4, 16000.00, 'REJECTED', DATEADD(MINUTE, -2, CURRENT_TIMESTAMP), 'system', DATEADD(MINUTE, -2, CURRENT_TIMESTAMP), 'system');
 
 -- APPROVED
 INSERT INTO products (partner_id, price, status, created_at, created_by, updated_at, updated_by)
 VALUES
-    (7, 13500.50, 'APPROVED', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system'),
+    (7, 13500.50, 'APPROVED', DATEADD(MINUTE, -1, CURRENT_TIMESTAMP), 'system', DATEADD(MINUTE, -1, CURRENT_TIMESTAMP), 'system'),
     (1, 24000.00, 'APPROVED', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP, 'system');
 
 -- 번역 샘플: product_id = 1, 2, 3 (한국어, 영어, 일본어)

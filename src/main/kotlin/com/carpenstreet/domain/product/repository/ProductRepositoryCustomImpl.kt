@@ -13,6 +13,7 @@ import com.carpenstreet.domain.user.entity.QUserEntity
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport
 
 class ProductRepositoryCustomImpl : ProductRepositoryCustom,
@@ -26,6 +27,12 @@ class ProductRepositoryCustomImpl : ProductRepositoryCustom,
         request: ProductGetRequest,
         pageable: Pageable,
     ): Page<ProductUserProjection> {
+        val sort = pageable.sort.firstOrNull { it.property == "createdAt" }
+        val orderSpecifier = when (sort?.direction) {
+            Sort.Direction.ASC -> product.createdAt.asc()
+            else -> product.createdAt.desc()  // 기본값 DESC
+        }
+
         val query = from(product)
             .select(
                 QProductUserProjection(
@@ -48,6 +55,9 @@ class ProductRepositoryCustomImpl : ProductRepositoryCustom,
                 request.partnerName?.let { user.name.contains(it) },
                 request.title?.let { translation.title.contains(it) },
             )
+            .orderBy(orderSpecifier)
+            .offset(pageable.offset)
+            .limit(pageable.pageSize.toLong())
             .distinct()
 
         val content = query.fetch()
@@ -76,35 +86,43 @@ class ProductRepositoryCustomImpl : ProductRepositoryCustom,
         request: AdminProductGetRequest,
         pageable: Pageable,
     ): List<ProductUserProjection> {
+        val sort = pageable.sort.firstOrNull { it.property == "createdAt" }
+        val orderSpecifier = when (sort?.direction) {
+            Sort.Direction.ASC -> product.createdAt.asc()
+            else -> product.createdAt.desc()  // 기본값 DESC
+        }
         val query = from(product)
-                .select(
-                    QProductUserProjection(
-                        product.id,
-                        product.price,
-                        product.status,
-                        translation.language,
-                        translation.title,
-                        translation.description,
-                        user
-                    )
+            .select(
+                QProductUserProjection(
+                    product.id,
+                    product.price,
+                    product.status,
+                    translation.language,
+                    translation.title,
+                    translation.description,
+                    user
                 )
-                .innerJoin(product.partner, user)
-                .leftJoin(translation).on(product.id.eq(translation.product.id))
-                .where(
-                    product.status.`in`(
-                        ProductStatus.REQUESTED,
-                        ProductStatus.REVIEWING,
-                        ProductStatus.REJECTED,
-                        ProductStatus.APPROVED
-                    ),
-                    request.status?.let { product.status.eq(it) },
-                    request.partnerName?.let { user.name.contains(it) },
-                    request.title?.let {
-                        translation.language.eq(Language.KO)
-                            .and(translation.title.contains(it))
-                    }
-                )
-                .distinct()
+            )
+            .innerJoin(product.partner, user)
+            .leftJoin(translation).on(product.id.eq(translation.product.id))
+            .where(
+                product.status.`in`(
+                    ProductStatus.REQUESTED,
+                    ProductStatus.REVIEWING,
+                    ProductStatus.REJECTED,
+                    ProductStatus.APPROVED
+                ),
+                request.status?.let { product.status.eq(it) },
+                request.partnerName?.let { user.name.contains(it) },
+                request.title?.let {
+                    translation.language.eq(Language.KO)
+                        .and(translation.title.contains(it))
+                }
+            )
+            .orderBy(orderSpecifier)
+            .offset(pageable.offset)
+            .limit(pageable.pageSize.toLong())
+            .distinct()
 
         val content = query.fetch()
         return content
