@@ -131,7 +131,7 @@ class ProductAdminCommandService(
             previousStatus = previousStatus,
             newStatus = newStatus,
             user = UserContext.get(),
-            reason = reason,
+            message = reason,
         )
 
         productReviewHistoryRepository.save(history)

@@ -24,7 +24,7 @@ class ProductReviewHistoryEntity(
     @JoinColumn(name = "user_id", nullable = false)
     val user: UserEntity,
     @Column(columnDefinition = "TEXT")
-    val reason: String? = null,
+    val message: String? = null,
     val snapshotTitleKo: String? = null,
     @Column(columnDefinition = "TEXT")
     val snapshotDescriptionKo: String? = null,

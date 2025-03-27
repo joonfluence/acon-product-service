@@ -7,9 +7,11 @@ import com.carpenstreet.application.admin.response.ProductUserResponse
 import com.carpenstreet.application.admin.service.ProductAdminCommandService
 import com.carpenstreet.application.admin.service.ProductAdminQueryService
 import com.carpenstreet.application.product.response.ProductResponse
+import com.carpenstreet.application.product.response.ProductWithTranslationsResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
@@ -41,15 +43,9 @@ class ProductAdminController(
         @Parameter(hidden = true)
         @PageableDefault(size = 10, sort = ["createdAt"], direction = Sort.Direction.DESC)
         pageable: Pageable,
-    ): ResponseEntity<PageImpl<ProductResponse>> {
+    ): ResponseEntity<Page<ProductWithTranslationsResponse>> {
         val products = productAdminQueryService.getProducts(request, pageable)
-        return ResponseEntity.ok(
-            PageImpl(
-                products.content.map { product -> ProductResponse.from(product) },
-                products.pageable,
-                products.totalElements,
-            )
-        )
+        return ResponseEntity.ok(products)
     }
 
     @Operation(

@@ -32,6 +32,7 @@ class ProductRepositoryCustomImpl : ProductRepositoryCustom,
                     product.id,
                     product.price,
                     product.status,
+                    translation.language,
                     translation.title,
                     translation.description,
                     user
@@ -71,13 +72,22 @@ class ProductRepositoryCustomImpl : ProductRepositoryCustom,
         return PageImpl(content, pageable, count)
     }
 
-    // TODO : Projection 활용하여 화면에 필요한 정보 조합하기
     override fun findAllWithTranslations(
         request: AdminProductGetRequest,
         pageable: Pageable,
-    ): Page<ProductEntity> {
+    ): List<ProductUserProjection> {
         val query = from(product)
-                .select(product)
+                .select(
+                    QProductUserProjection(
+                        product.id,
+                        product.price,
+                        product.status,
+                        translation.language,
+                        translation.title,
+                        translation.description,
+                        user
+                    )
+                )
                 .innerJoin(product.partner, user)
                 .leftJoin(translation).on(product.id.eq(translation.product.id))
                 .where(
@@ -97,8 +107,11 @@ class ProductRepositoryCustomImpl : ProductRepositoryCustom,
                 .distinct()
 
         val content = query.fetch()
+        return content
+    }
 
-        val count = from(product)
+    override fun countDistinctProducts(request: AdminProductGetRequest): Long {
+        return from(product)
             .select(product.id)
             .innerJoin(product.partner, user)
             .leftJoin(translation).on(product.id.eq(translation.product.id))
@@ -112,13 +125,14 @@ class ProductRepositoryCustomImpl : ProductRepositoryCustom,
                 request.status?.let { product.status.eq(it) },
                 request.partnerName?.let { user.name.contains(it) },
                 request.title?.let {
-                    translation.language.eq(Language.KO)
-                        .and(translation.title.contains(it))
+                    translation.title.contains(it) // 언어 조건 없이 전체 title 검색
                 }
             )
             .distinct()
-            .fetchCount()
-
-        return PageImpl(content, pageable, count)
+            .fetch()
+            .map { it } // List<Long> 형태
+            .distinct()
+            .count()
+            .toLong()
     }
 }

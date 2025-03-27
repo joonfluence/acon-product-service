@@ -30,15 +30,14 @@ class ProductCommandService(
     private val productTranslationRepository: ProductTranslationRepository,
     private val productReviewHistoryRepository: ProductReviewHistoryRepository,
 ) {
-    // TODO : Request to DTO 변경 필요 (Response도 마찬가지)
     @Transactional
     fun createProduct(
         request: ProductCreateRequest,
-        user: UserEntity
-    ): ProductEntity {
+    ): ProductDetailUserDto {
+        val partner = UserContext.get()
         val product = productRepository.save(
             ProductEntity(
-                partner = user,
+                partner = partner,
                 price = request.price,
                 status = ProductStatus.DRAFT
             )
@@ -49,8 +48,8 @@ class ProductCommandService(
             title = request.title,
             description = request.description
         )
-        productTranslationRepository.save(translation)
-        return product
+        val savedTranslation = productTranslationRepository.save(translation)
+        return ProductDetailUserDto.of(product, savedTranslation, partner)
     }
 
     @Transactional
@@ -103,6 +102,7 @@ class ProductCommandService(
                 previousStatus = previousStatus,
                 newStatus = newStatus,
                 user = user,
+                message = request.message
             )
         )
 

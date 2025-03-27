@@ -48,7 +48,7 @@ class ProductController(
         val productsWithPartner = productQueryService.getProducts(request, pageable)
         return ResponseEntity.ok(
             PageImpl(
-                productsWithPartner.content.map { product -> ProductResponse.of(product) },
+                productsWithPartner.content.map { product -> ProductResponse.from(product) },
                 productsWithPartner.pageable,
                 productsWithPartner.totalElements,
             )
@@ -63,8 +63,7 @@ class ProductController(
     fun createProduct(
         @RequestBody request: ProductCreateRequest,
     ): ResponseEntity<ProductResponse> {
-        val user = UserContext.get()
-        val result = productCommandService.createProduct(request, user)
+        val result = productCommandService.createProduct(request)
         return ResponseEntity.ok(ProductResponse.from(result))
     }
 

@@ -38,7 +38,7 @@ data class ProductResponse(
             )
         }
 
-        fun of(
+        fun from(
             product: ProductUserProjection,
         ) : ProductResponse {
             return ProductResponse(

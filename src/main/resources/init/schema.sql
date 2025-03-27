@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS product_review_histories
     previous_status         VARCHAR(20)  NOT NULL,
     new_status              VARCHAR(20)  NOT NULL,
     user_id                 BIGINT       NOT NULL,
-    reason                  TEXT,
+    message                  TEXT,
     snapshot_title_ko       VARCHAR(255) NULL,
     snapshot_description_ko TEXT         NULL,
     created_at              TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
