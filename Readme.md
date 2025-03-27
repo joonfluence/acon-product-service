@@ -73,14 +73,26 @@ modules/
 
 </details>
 
-## ERD
+## ERD 및 UML 다이어그램
 
-![erd-2](./src/main/resources/erd/erd-2.png)
-![erd-1](./src/main/resources/erd/erd-1.png)
+![erd-2](./src/main/resources/docs/erd-2.png)
+![erd-1](./src/main/resources/docs/erd-1.png)
 
-```sql
+- 전체 DDL 및 DML은 /src/main/resources/init 폴더에서 확인하실 수 있습니다.
 
-```
+### 시퀀스 다이어그램
+
+- 검토 요청 → 검토 중 : 비동기 흐름, 외부 API 연동
+
+![reviewing-event-flow](./src/main/resources/docs/reviewing-event-flow.svg)
+
+- 검토 중 → 거절 : 번역 삭제 + 문자 발송 + 상태 전이
+
+![reject-event-flow](./src/main/resources/docs/reject-event-flow.svg)
+
+- 검토 중 → 완료 : 문자 발송 + 상품 판매 상태
+
+![approve-event-flow](./src/main/resources/docs/approve-event-flow.svg)
 
 ## 설계 전략 및 고려사항
 
@@ -122,6 +134,9 @@ modules/
 - 접속: http://localhost:8080
 - H2 Console: http://localhost:8080/h2-console (JDBC URL: jdbc:h2:mem:testdb)
 - API Docs : http://localhost:8080/swagger-ui/index.html
+  - 작가 권한 API 테스트의 경우 : X-USER-ID 값에 1를 넣어주시면 됩니다. 
+  - 어드민 권한 API 테스트의 경우 : X-USER-ID 값에 2를 넣어주시면 됩니다. 
+  - 유저 권한 API 테스트의 경우 : X-USER-ID 값에 3를 넣어주시면 됩니다. 
 
 ## 가정사항 / 특이사항
 
