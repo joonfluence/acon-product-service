@@ -1,15 +1,15 @@
-package com.carpenstreet.application.scheduler
+package com.commerce.application.scheduler
 
-import com.carpenstreet.client.notification.NotificationClient
-import com.carpenstreet.client.notification.request.SmsRequest
-import com.carpenstreet.client.notification.response.NotificationResponse
-import com.carpenstreet.common.context.UserContext
-import com.carpenstreet.domain.common.enums.Country
-import com.carpenstreet.domain.notification.entity.NotificationFailureEntity
-import com.carpenstreet.domain.notification.repository.NotificationFailureRepository
-import com.carpenstreet.domain.user.entity.UserEntity
-import com.carpenstreet.domain.user.enums.UserRole
-import com.carpenstreet.domain.user.repository.UserRepository
+import com.commerce.client.notification.NotificationClient
+import com.commerce.client.notification.request.SmsRequest
+import com.commerce.client.notification.response.NotificationResponse
+import com.commerce.common.context.UserContext
+import com.commerce.domain.common.enums.Country
+import com.commerce.domain.notification.entity.NotificationFailureEntity
+import com.commerce.domain.notification.repository.NotificationFailureRepository
+import com.commerce.domain.user.entity.UserEntity
+import com.commerce.domain.user.enums.UserRole
+import com.commerce.domain.user.repository.UserRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

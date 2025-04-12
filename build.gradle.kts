@@ -8,7 +8,7 @@ plugins {
 	id("io.spring.dependency-management") version "1.1.7"
 }
 
-group = "com.carpenstreet"
+group = "com.commerce"
 version = "0.0.1-SNAPSHOT"
 
 java {

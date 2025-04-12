@@ -1,4 +1,4 @@
-package com.carpenstreet.domain.product.enums
+package com.commerce.domain.product.enums
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
